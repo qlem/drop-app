@@ -24,3 +24,4 @@ $ ./dl_schema.fish -e <api endpoint>
 **Development**
 - use only Kotlin
 - whenever there are server side changes on the schemas be sure to run `./dl_schema.fish -e <api endpoint>` and rebuild (Android Studio -> Build -> Rebuild Project)
+- respect the directory structure: graphql queries, mutations and subscriptions are located in `app/src/main/graphql/`
