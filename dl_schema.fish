@@ -21,7 +21,7 @@ function find_value
 		end
 	end
 	for arg in $argv
-		set split (string split = -- $arg)
+		set split (string split = -m 1 -- $arg)
 		if test $split[1] = $current_flag
 			and test $split[2]
 			set -g option_value $split[2]
@@ -62,17 +62,18 @@ function print_usage
 	set_color -o
 	printf Usage\n
 	set_color normal
-	printf '%s [...OPTIONS] [-e ENDPOINT | --endpoint=ENDPOINT] [-t TOKEN | --token=TOKEN]\n' (status -f)
+	printf '\t%s [...OPTIONS] [-e ENDPOINT | --endpoint=ENDPOINT]\n' (status -f)
 	set_color -o
 	printf \nArguments\n
 	set_color normal
 	printf '\tENDPOINT\tthe graphql server endpoint\n'
-	printf '\tTOKEN\t\tthe graphql server token\n'
+	printf '\tTOKEN\t\ta valid token in case the graphql server requires authentication\n'
 	set_color -o
 	printf \nOptions\n
 	set_color normal
-	printf -- '\t-h, --help\tshow help\n'
-	printf -- '\t-v, --verbose\tenable verbose mod\n'
+	printf -- '\t-h, --help\t\tshow help\n'
+	printf -- '\t-v, --verbose\t\tenable verbose mod\n'
+	printf -- '\t-t TOKEN, --token=TOKEN\tspecify a valid token for the Authorization header\n'
 end
 
 set -g current_flag_short "-h"
@@ -103,9 +104,7 @@ end
 set -g current_flag_short "-t"
 set -g current_flag "--token"
 if find_value $argv
-	set token $option_value
-else
-	emit wrong_value "Token check"
+	set -g token $option_value
 end
 if test $error
 	printf '\nFor help run "%s --help"\n' (status -f)
