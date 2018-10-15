@@ -82,7 +82,10 @@ if [ "$apollo_status" -ne 0 ] && [ -z "$verbose_mod" ] ;then
     printf "\n run with -v or --verbose\n"
 fi
 
-if [ "$apollo_status" -eq 0 ] ;then
-    exit 0
-else exit 1
-fi
+set -e
+
+./gradlew clean
+./gradlew cleanBuildCache
+./gradlew build
+
+exit 0

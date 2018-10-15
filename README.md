@@ -22,5 +22,5 @@ $ ./dl_schema.sh -e <api endpoint>
 
 **Development**
 - use only Kotlin
-- whenever there are server side changes on the schemas be sure to run `./dl_schema.sh -e <api endpoint>` and rebuild (Android Studio -> Build -> Rebuild Project)
+- whenever there are server side changes on the schemas be sure to run `./dl_schema.sh -e <api endpoint>`
 - respect the directory structure: graphql queries, mutations and subscriptions are located in `app/src/main/graphql/`
