@@ -5,7 +5,7 @@ Android app built in Kotlin and using [Apollo Android](https://www.apollographql
 - Android Studio
 - node
 - npm
-- [fish](https://fishshell.com/)
+- [fish](https://fishshell.com/#get_fish_linux)
 - [Apollo CLI](https://github.com/apollographql/apollo-cli)
 ```
 $ npm i -g apollo
