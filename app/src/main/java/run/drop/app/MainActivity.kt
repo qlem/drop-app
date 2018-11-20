@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         apolloClient.query(droppedQuery).enqueue(object : ApolloCall.Callback<DroppedQuery.Data>() {
 
             override fun onResponse(dataResponse: Response<DroppedQuery.Data>) {
-                Log.d("APOLLO", "OK !!!")
+                Log.d("APOLLO", dataResponse.data()?.dropped()?.first()?.id())
             }
 
             override fun onFailure(e: ApolloException) {
