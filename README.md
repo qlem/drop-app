@@ -31,7 +31,11 @@ $ git clone https://github.com/phacility/libphutil.git
 $ git clone https://github.com/phacility/arcanist.git
 ```
 then add `/path/to/arcanist/bin/` to your PATH environment variable to make `arc` command available from anywhere.
-Finally you can add the bellow instruction in your shell config file (eg. `.bashrc`)
+Set your favorite editor with
+```
+$ arc set-config editor /path/to/editor_bin
+```
+If you use bash you can add the bellow line in your shell config file (eg. `.bashrc`) to set up tab completion for `arc` command
 ```
 source /path/to/arcanist/resources/shell/bash-completion
 ```
