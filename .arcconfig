@@ -1,3 +1,5 @@
 {
-  "phabricator.uri" : "https://phabricator.drop.run/"
+  "phabricator.uri" : "https://phabricator.drop.run/",
+  "history.immutable": false,
+  "arc.land.onto.default": "master"
 }
