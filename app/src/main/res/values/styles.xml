@@ -14,5 +14,5 @@
         <item name="colorOnBackground">@color/colorOnBackground</item>
         <item name="colorOnError">@color/colorOnError</item>
     </style>
-
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
 </resources>

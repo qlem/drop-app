@@ -3,11 +3,13 @@ package run.drop.app
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.widget.Toolbar
 import com.apollographql.apollo.ApolloClient
 import okhttp3.OkHttpClient
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import com.google.android.material.appbar.CollapsingToolbarLayout
 
 private const val BASE_URL = "http://10.0.2.2:4000"
 private lateinit var apolloClient: ApolloClient
@@ -16,7 +18,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.top_app_bar)
+        setContentView(R.layout.activity_main)
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        val collapsingToolbarLayout = findViewById<CollapsingToolbarLayout>(R.id.ppcollapsingToolbarLayout)
+        collapsingToolbarLayout.title = getString(R.string.app_name)
 
         val okHttpClient = OkHttpClient.Builder().build()
 
