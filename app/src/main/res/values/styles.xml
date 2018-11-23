@@ -19,4 +19,8 @@
     <style name="TopBarText">
         <item name="android:fontFamily">@font/roboto_condensed_regular</item>
     </style>
+    <style name="LauncherTheme" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowBackground">@drawable/launch_screen</item>
+        <item name="android:colorPrimaryDark">@color/colorBackground</item>
+    </style>
 </resources>

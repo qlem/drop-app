@@ -14,13 +14,13 @@ import androidx.core.content.ContextCompat
 import android.view.WindowManager
 
 
-
 private const val BASE_URL = "http://10.0.2.2:4000"
 private lateinit var apolloClient: ApolloClient
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
