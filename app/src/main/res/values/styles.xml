@@ -17,6 +17,6 @@
     </style>
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
     <style name="TopBarText">
-        <item name="android:font">@font/roboto_condensed_regular</item>
+        <item name="android:fontFamily">@font/roboto_condensed_regular</item>
     </style>
 </resources>
