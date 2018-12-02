@@ -6,9 +6,7 @@
     "mutationType": {
       "name": "Mutation"
     },
-    "subscriptionType": {
-      "name": "Subscription"
-    },
+    "subscriptionType": null,
     "types": [
       {
         "kind": "OBJECT",
@@ -24,7 +22,7 @@
                 "description": "",
                 "type": {
                   "kind": "ENUM",
-                  "name": "DraftOrderByInput",
+                  "name": "DropOrderByInput",
                   "ofType": null
                 },
                 "defaultValue": null
@@ -71,7 +69,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "Draft",
+                    "name": "Drop",
                     "ofType": null
                   }
                 }
@@ -116,7 +114,7 @@
             "deprecationReason": null
           },
           {
-            "name": "draft",
+            "name": "drop",
             "description": "",
             "args": [
               {
@@ -136,7 +134,7 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "Draft",
+              "name": "Drop",
               "ofType": null
             },
             "isDeprecated": false,
@@ -193,7 +191,7 @@
       },
       {
         "kind": "ENUM",
-        "name": "DraftOrderByInput",
+        "name": "DropOrderByInput",
         "description": "",
         "fields": null,
         "inputFields": null,
@@ -262,7 +260,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "Draft",
+        "name": "Drop",
         "description": "",
         "fields": [
           {
@@ -431,7 +429,7 @@
             "deprecationReason": null
           },
           {
-            "name": "drafts",
+            "name": "drops",
             "description": "",
             "args": [],
             "type": {
@@ -445,7 +443,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "Draft",
+                    "name": "Drop",
                     "ofType": null
                   }
                 }
@@ -733,7 +731,7 @@
             "deprecationReason": null
           },
           {
-            "name": "drop",
+            "name": "createDrop",
             "description": "",
             "args": [
               {
@@ -756,7 +754,7 @@
               "name": null,
               "ofType": {
                 "kind": "OBJECT",
-                "name": "Draft",
+                "name": "Drop",
                 "ofType": null
               }
             },
@@ -764,7 +762,7 @@
             "deprecationReason": null
           },
           {
-            "name": "updateDraft",
+            "name": "updateDrop",
             "description": "",
             "args": [
               {
@@ -801,7 +799,7 @@
               "name": null,
               "ofType": {
                 "kind": "OBJECT",
-                "name": "Draft",
+                "name": "Drop",
                 "ofType": null
               }
             },
@@ -809,7 +807,7 @@
             "deprecationReason": null
           },
           {
-            "name": "deleteDraft",
+            "name": "deleteDrop",
             "description": "",
             "args": [
               {
@@ -832,7 +830,7 @@
               "name": null,
               "ofType": {
                 "kind": "OBJECT",
-                "name": "Draft",
+                "name": "Drop",
                 "ofType": null
               }
             },
@@ -876,204 +874,6 @@
               "ofType": {
                 "kind": "OBJECT",
                 "name": "User",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
-        ],
-        "inputFields": null,
-        "interfaces": [],
-        "enumValues": null,
-        "possibleTypes": null
-      },
-      {
-        "kind": "OBJECT",
-        "name": "Subscription",
-        "description": "",
-        "fields": [
-          {
-            "name": "drafts",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "OBJECT",
-              "name": "DraftSubscriptionPayload",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
-        ],
-        "inputFields": null,
-        "interfaces": [],
-        "enumValues": null,
-        "possibleTypes": null
-      },
-      {
-        "kind": "OBJECT",
-        "name": "DraftSubscriptionPayload",
-        "description": "",
-        "fields": [
-          {
-            "name": "mutation",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "ENUM",
-                "name": "MutationType",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "node",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "OBJECT",
-              "name": "Draft",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "updatedFields",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "LIST",
-              "name": null,
-              "ofType": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "previousValues",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "OBJECT",
-              "name": "DraftPreviousValues",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
-        ],
-        "inputFields": null,
-        "interfaces": [],
-        "enumValues": null,
-        "possibleTypes": null
-      },
-      {
-        "kind": "ENUM",
-        "name": "MutationType",
-        "description": "",
-        "fields": null,
-        "inputFields": null,
-        "interfaces": null,
-        "enumValues": [
-          {
-            "name": "CREATED",
-            "description": "",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "UPDATED",
-            "description": "",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "DELETED",
-            "description": "",
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
-        ],
-        "possibleTypes": null
-      },
-      {
-        "kind": "OBJECT",
-        "name": "DraftPreviousValues",
-        "description": "",
-        "fields": [
-          {
-            "name": "id",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "ID",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "createdAt",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "DateTime",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "updatedAt",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "DateTime",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "text",
-            "description": "",
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
                 "ofType": null
               }
             },

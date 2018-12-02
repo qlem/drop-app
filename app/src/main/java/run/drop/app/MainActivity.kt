@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.widget.Toolbar
 import com.apollographql.apollo.ApolloClient
-import okhttp3.OkHttpClient
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
@@ -25,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+        TokenStore.initStore(this)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
@@ -33,16 +33,13 @@ class MainActivity : AppCompatActivity() {
         val collapsingToolbarLayout = findViewById<CollapsingToolbarLayout>(R.id.ppcollapsingToolbarLayout)
         collapsingToolbarLayout.title = getString(R.string.app_name)
 
-        val okHttpClient = OkHttpClient.Builder().build()
-
         apolloClient = ApolloClient
                 .builder()
                 .serverUrl(BASE_URL)
-                .okHttpClient(okHttpClient)
+                .okHttpClient(HttpClient.instance)
                 .build()
 
         val droppedQuery = DroppedQuery.builder().build()
-
         apolloClient.query(droppedQuery).enqueue(object : ApolloCall.Callback<DroppedQuery.Data>() {
 
             override fun onResponse(dataResponse: Response<DroppedQuery.Data>) {
