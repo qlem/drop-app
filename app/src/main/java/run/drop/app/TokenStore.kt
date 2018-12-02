@@ -1,6 +1,7 @@
 package run.drop.app
 
 import android.content.Context
+import java.io.File
 import java.io.FileNotFoundException
 
 object TokenStore {
@@ -26,5 +27,11 @@ object TokenStore {
         } catch (e: FileNotFoundException) {
             null
         }
+    }
+
+    fun clearToken(context: Context) {
+        val file = File(context.filesDir, "token")
+        file.delete()
+        token = null
     }
 }
