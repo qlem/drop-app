@@ -1,27 +1,29 @@
 package run.drop.app
 
+import android.app.Activity
 import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View
+import android.widget.Button
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 
-class LauncherActivity : AppCompatActivity() {
+class DropActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
-        setStatusBarColor(window, this)
-        val token = TokenStore.getToken(this)
-        if (token == null) {
-            val intent = Intent(this, SignInActivity::class.java)
-            startActivity(intent)
+        setContentView(R.layout.drop)
+        val deconnectButton : Button = findViewById(R.id.disconnection)
+
+        testTokenAuth()
+
+        deconnectButton.setOnClickListener {
+            TokenStore.clearToken(this)
+            startActivity(Intent(this, SignInActivity::class.java))
             finish()
-        }
-        else{
-            testTokenAuth()
         }
     }
 
@@ -30,10 +32,8 @@ class LauncherActivity : AppCompatActivity() {
                 AmIAuthQuery.builder().build()).enqueue(object : ApolloCall.Callback<AmIAuthQuery.Data>() {
             override fun onResponse(response: Response<AmIAuthQuery.Data>) {
                 if (!response.data()!!.amIAuth().isAuth()) {
-                    startActivity(Intent(this@LauncherActivity, SignInActivity::class.java))
-                }
-                else{
-                    startActivity(Intent(this@LauncherActivity, DropActivity::class.java))
+                    startActivity(Intent(this@DropActivity, SignInActivity::class.java))
+                    finish()
                 }
             }
             override fun onFailure(e: ApolloException) {
