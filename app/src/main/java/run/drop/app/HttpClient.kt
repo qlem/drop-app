@@ -14,7 +14,6 @@ object HttpClient {
                 it.request()
             }
             it.proceed(request)
-        }
-                .build()
+        }.build()
     }
 }

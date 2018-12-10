@@ -15,23 +15,24 @@ class SignUpActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.sign_up)
+        setContentView(R.layout.activity_sign_up)
+        setStatusBarColor(window, this)
 
-        val usernameSignup : EditText = findViewById(R.id.signupUsername)
-        val emailSignup : EditText = findViewById(R.id.signupEmail)
-        val passwordSignup : EditText = findViewById(R.id.signupPassword)
-        val passwordConfirmSignup : EditText = findViewById(R.id.signupConfirmPassword)
-        val buttonSignup : Button = findViewById(R.id.signupButton)
+        val username: EditText = findViewById(R.id.username)
+        val email: EditText = findViewById(R.id.email)
+        val password: EditText = findViewById(R.id.password)
+        val confirmedPassword: EditText = findViewById(R.id.confirmed_password)
+        val button: Button = findViewById(R.id.new_account_button)
 
-        buttonSignup.setOnClickListener{
-            if (checkAllFields(usernameSignup.text.toString(), emailSignup.text.toString(), passwordSignup.text.toString(), passwordConfirmSignup.text.toString())){
-                createAccount(usernameSignup.text.toString(), emailSignup.text.toString(), passwordSignup.text.toString())
+        button.setOnClickListener{
+            if (checkAllFields(username.text.toString(), email.text.toString(), password.text.toString(),
+                            confirmedPassword.text.toString())) {
+                createAccount(username.text.toString(), email.text.toString(), password.text.toString())
             }
         }
     }
 
     private fun createAccount(username : String, email : String, password : String){
-        val intent = Intent(this, LauncherActivity::class.java)
         Apollo.client.mutate(
                 SignupMutation.builder()
                         .username(username)
@@ -41,14 +42,13 @@ class SignUpActivity : AppCompatActivity() {
 
             override fun onResponse(dataResponse: Response<SignupMutation.Data>) {
                 if (dataResponse.data()?.signup()?.token() != null) {
-                    startActivity(intent)
+                    startActivity(Intent(this@SignUpActivity, DropActivity::class.java))
                     TokenStore.setToken(dataResponse.data()?.signup()?.token.toString(), this@SignUpActivity)
-                    Log.d("APOLLO", "Création OK : " + dataResponse.data()?.signup()?.token.toString())
                     finish()
-                }
-                else {
+                } else {
                     this@SignUpActivity.runOnUiThread {
-                        Toast.makeText(applicationContext, "Email address or username already exist.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(applicationContext, "Email address or username already exist.",
+                                Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -60,17 +60,16 @@ class SignUpActivity : AppCompatActivity() {
         })
     }
 
-    private fun checkAllFields(username : String, email : String, password : String, confirmPassword: String) : Boolean{
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()){
+    private fun checkAllFields(username : String, email : String, password : String, confirmPassword: String): Boolean {
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(applicationContext, "Please, complete all fields.", Toast.LENGTH_SHORT).show()
             return false
-        }
-        else{
-            if (password.equals(confirmPassword, true)){
+        } else {
+            if (password == confirmPassword) {
                 return true
-            }
-            else{
-                Toast.makeText(applicationContext, "Please, verify your passwords.", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(applicationContext, "Please, verify your passwords.",
+                        Toast.LENGTH_SHORT).show()
             }
         }
         return false

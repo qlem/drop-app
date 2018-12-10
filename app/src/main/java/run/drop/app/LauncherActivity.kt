@@ -2,7 +2,6 @@ package run.drop.app
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
@@ -14,30 +13,30 @@ class LauncherActivity : AppCompatActivity() {
         setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
         setStatusBarColor(window, this)
+
         val token = TokenStore.getToken(this)
         if (token == null) {
-            val intent = Intent(this, SignInActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
-        else{
+            startActivity(Intent(this, SignInActivity::class.java))
+        } else {
             testTokenAuth()
         }
+
+        finish()
     }
 
     private fun testTokenAuth() {
         Apollo.client.query(
                 AmIAuthQuery.builder().build()).enqueue(object : ApolloCall.Callback<AmIAuthQuery.Data>() {
+
             override fun onResponse(response: Response<AmIAuthQuery.Data>) {
                 if (!response.data()!!.amIAuth().isAuth()) {
                     startActivity(Intent(this@LauncherActivity, SignInActivity::class.java))
-                }
-                else{
+                } else {
                     startActivity(Intent(this@LauncherActivity, DropActivity::class.java))
                 }
             }
-            override fun onFailure(e: ApolloException) {
-            }
+
+            override fun onFailure(e: ApolloException) {}
         })
     }
 }

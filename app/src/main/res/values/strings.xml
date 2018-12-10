@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">Drop</string>
+
+    <string name="drop_location_btn">GET LOCATION</string>
+    <string name="drop_quit_btn">QUIT</string>
+
+    <string name="latitude">lat 0</string>
+    <string name="longitude">lon 0</string>
+    <string name="altitude">alt 0</string>
+
+    <string name="username_hint">Username</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="confirmed_password_hint">Confirm password</string>
+
+    <string name="sign_in_button">SIGN IN</string>
+    <string name="sign_up_button">SIGN UP</string>
+
+    <string name="location_provider_dialog_title">Enable location</string>
+    <string name="location_provider_dialog_message">Drop needs the device location to be enabled
+        to offer an optimal experience.</string>
+    <string name="location_provider_dialog_button">OPEN SETTINGS</string>
 </resources>

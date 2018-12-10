@@ -1,6 +1,5 @@
 package run.drop.app
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -17,30 +16,30 @@ class SignInActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.sign_in)
+        setContentView(R.layout.activity_sign_in)
         setStatusBarColor(window, this)
 
-        val signinEmail : EditText = findViewById(R.id.signinEmail)
-        val signinPassword : EditText = findViewById(R.id.signinPassword)
-        val signupText : TextView = findViewById(R.id.signupText)
-        val signinButton : Button = findViewById(R.id.loginButton)
+        val signInEmail: EditText = findViewById(R.id.email)
+        val signInPassword: EditText = findViewById(R.id.password)
+        val signInButton: Button = findViewById(R.id.sign_in_button)
+        val signUpButton: TextView = findViewById(R.id.sign_up_button)
 
-        signupText.setOnClickListener{
+        signUpButton.setOnClickListener{
             startActivity(Intent(this, SignUpActivity::class.java))
             finish()
         }
 
-        signinButton.setOnClickListener{
-            if (signinEmail.text.isBlank() || signinPassword.text.isBlank()) {
-                Toast.makeText(applicationContext, "Please enter an email and a password", Toast.LENGTH_SHORT).show()
+        signInButton.setOnClickListener{
+            if (signInEmail.text.isBlank() || signInPassword.text.isBlank()) {
+                Toast.makeText(applicationContext, "Please enter an email and a password",
+                        Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            logIn(signinEmail.text.toString(), signinPassword.text.toString())
+            logIn(signInEmail.text.toString(), signInPassword.text.toString())
         }
     }
 
-    private fun logIn(email : String, password : String){
-        val intent = Intent(this, DropActivity::class.java)
+    private fun logIn(email : String, password : String) {
         Apollo.client.mutate(
                 LoginMutation.builder()
                         .email(email)
@@ -49,13 +48,14 @@ class SignInActivity : AppCompatActivity() {
 
             override fun onResponse(dataResponse: Response<LoginMutation.Data>) {
                 if (dataResponse.data()?.login()?.token() != null) {
-                    TokenStore.setToken(dataResponse.data()?.login()?.token().toString(), this@SignInActivity)
-                    startActivity(intent)
+                    TokenStore.setToken(dataResponse.data()?.login()?.token().toString(),
+                            this@SignInActivity)
+                    startActivity(Intent(this@SignInActivity, DropActivity::class.java))
                     finish()
-                }
-                else{
+                } else {
                     this@SignInActivity.runOnUiThread {
-                        Toast.makeText(applicationContext, "Incorrect password or email.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(applicationContext, "Incorrect password or email.",
+                                Toast.LENGTH_SHORT).show()
                     }
                 }
             }
