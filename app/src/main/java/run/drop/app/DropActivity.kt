@@ -14,12 +14,21 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.provider.Settings
+import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import com.google.ar.sceneform.rendering.ModelRenderable
+import com.google.android.play.core.install.protocol.e
+import androidx.core.view.accessibility.AccessibilityRecordCompat.setSource
+import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.rendering.ViewRenderable
+
 
 class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsListener {
+
+    private var andyRenderable: ViewRenderable? = null
 
     private var requestPermissionCode: Int = 42
 
@@ -44,6 +53,7 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         val latitudeView: TextView = findViewById(R.id.latitude)
         val longitudeView: TextView = findViewById(R.id.longitude)
         val altitudeView: TextView = findViewById(R.id.altitude)
+        val node = Node()
 
         // test authentication
         testTokenAuth()
@@ -63,6 +73,14 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
                 PackageManager.PERMISSION_GRANTED) {
             locationHandler = LocationHandler(this)
         }
+
+        //Renderable pour SceneForm A TOI DE JOUER BALDIN
+        /*ViewRenderable.builder()
+                .setView(this, R.layout.drop_text_dialog)
+                .build()
+                .thenAccept{ renderable -> andyRenderable = renderable }*/
+
+       // node.renderable = andyRenderable
 
         quitButton.setOnClickListener {
             TokenStore.clearToken(this)

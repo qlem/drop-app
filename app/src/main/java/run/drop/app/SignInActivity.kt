@@ -30,12 +30,17 @@ class SignInActivity : AppCompatActivity() {
         }
 
         signInButton.setOnClickListener{
-            if (signInEmail.text.isBlank() || signInPassword.text.isBlank()) {
+
+            //A décommenter pour passer en authentification
+            /*if (signInEmail.text.isBlank() || signInPassword.text.isBlank()) {
                 Toast.makeText(applicationContext, "Please enter an email and a password",
                         Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            logIn(signInEmail.text.toString(), signInPassword.text.toString())
+            logIn(signInEmail.text.toString(), signInPassword.text.toString())*/
+
+            //Laisser décommenter pour faire les tests ar (redirection sur l'activité DROP sans passer par l'étape d'authetification)
+            startActivity(Intent(this, DropActivity::class.java))
         }
     }
 
