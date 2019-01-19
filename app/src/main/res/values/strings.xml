@@ -20,4 +20,9 @@
     <string name="location_provider_dialog_message">Drop needs the device location to be enabled
         to offer an optimal experience.</string>
     <string name="location_provider_dialog_button">OPEN SETTINGS</string>
+
+    <string name="drop">Drop</string>
+    <string name="your_message">Your message</string>
+    <string name="color">Color</string>
+    <string name="size">Size</string>
 </resources>

@@ -1,38 +1,37 @@
 package run.drop.app
 
 import android.Manifest
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import androidx.core.app.ActivityCompat
 import android.content.pm.PackageManager
+import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
 import android.provider.Settings
-import android.util.Log
-import android.widget.TextView
-import android.widget.Toast
+import android.view.MotionEvent
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
-import com.google.ar.sceneform.rendering.ModelRenderable
-import com.google.android.play.core.install.protocol.e
-import androidx.core.view.accessibility.AccessibilityRecordCompat.setSource
-import com.google.ar.sceneform.Node
-import com.google.ar.sceneform.rendering.ViewRenderable
+import com.google.ar.core.HitResult
+import com.google.ar.core.Plane
+import com.google.ar.sceneform.ux.ArFragment
 
 
 class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsListener {
 
-    private var andyRenderable: ViewRenderable? = null
-
     private var requestPermissionCode: Int = 42
 
     private var locationHandler: LocationHandler? = null
+
+    private var arFragment: ArFragment? = null
+
 
     private fun checkPermissions() {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
@@ -53,13 +52,17 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         val latitudeView: TextView = findViewById(R.id.latitude)
         val longitudeView: TextView = findViewById(R.id.longitude)
         val altitudeView: TextView = findViewById(R.id.altitude)
-        val node = Node()
 
         // test authentication
         testTokenAuth()
 
         // check permissions
         checkPermissions()
+
+        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
+        arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane, _: MotionEvent ->
+            dropButtonEvent(hitResult, plane)
+        }
 
         // check device location
         val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -74,14 +77,6 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
             locationHandler = LocationHandler(this)
         }
 
-        //Renderable pour SceneForm A TOI DE JOUER BALDIN
-        /*ViewRenderable.builder()
-                .setView(this, R.layout.drop_text_dialog)
-                .build()
-                .thenAccept{ renderable -> andyRenderable = renderable }*/
-
-       // node.renderable = andyRenderable
-
         quitButton.setOnClickListener {
             TokenStore.clearToken(this)
             startActivity(Intent(this, SignInActivity::class.java))
@@ -95,6 +90,41 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
             longitudeView.text = location.longitude.toString()
             altitudeView.text = location.altitude.toString()
         }
+    }
+
+    private fun dropButtonEvent(hitResult: HitResult, plane: Plane) {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.drop_text_dialog)
+
+        val dropTextInput = dialog.findViewById<EditText>(R.id.dropTextInput)
+        val dropSubmit = dialog.findViewById<Button>(R.id.dropSubmit)
+        val textSize = dialog.findViewById<SeekBar>(R.id.seekBarSize)
+        val colorPicker = dialog.findViewById<LinearLayout>(R.id.colorPicker)
+        val colorPickerButton = dialog.findViewById<Button>(R.id.colorPickerButton)
+
+        // only for presentation
+        colorPickerButton.setOnClickListener {
+            val color = colorPicker.background as ColorDrawable
+            when (color.color) {
+                ContextCompat.getColor(this, R.color.textColor1) -> colorPicker.setBackgroundResource(R.color.textColor2)
+                ContextCompat.getColor(this, R.color.textColor2) -> colorPicker.setBackgroundResource(R.color.textColor3)
+                ContextCompat.getColor(this, R.color.textColor3) -> colorPicker.setBackgroundResource(R.color.textColor4)
+                ContextCompat.getColor(this, R.color.textColor4) -> colorPicker.setBackgroundResource(R.color.textColor5)
+                ContextCompat.getColor(this, R.color.textColor5) -> colorPicker.setBackgroundResource(R.color.textColor1)
+            }
+        }
+
+        dropSubmit.setOnClickListener {
+            val color = colorPicker.background as ColorDrawable
+
+            DropText(this,
+                    hitResult.createAnchor(),
+                    TextEntity(dropTextInput.text.toString(), textSize.progress.toFloat(), color.color),
+                    this.arFragment!!,
+                    plane)
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     override fun onDestroy() {
