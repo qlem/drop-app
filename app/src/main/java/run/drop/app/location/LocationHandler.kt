@@ -1,4 +1,4 @@
-package run.drop.app
+package run.drop.app.location
 
 import android.Manifest
 import android.content.Context

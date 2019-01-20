@@ -11,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import run.drop.app.apollo.Apollo
+import run.drop.app.token.TokenHandler
+import run.drop.app.utils.setStatusBarColor
 
 class SignInActivity : AppCompatActivity() {
 
@@ -31,15 +34,14 @@ class SignInActivity : AppCompatActivity() {
 
         signInButton.setOnClickListener{
 
-            //A décommenter pour passer en authentification
-            /*if (signInEmail.text.isBlank() || signInPassword.text.isBlank()) {
+            // TODO uncomment here - skip identification for develop only
+            /* if (signInEmail.text.isBlank() || signInPassword.text.isBlank()) {
                 Toast.makeText(applicationContext, "Please enter an email and a password",
                         Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            logIn(signInEmail.text.toString(), signInPassword.text.toString())*/
+            logIn(signInEmail.text.toString(), signInPassword.text.toString()) */
 
-            //Laisser décommenter pour faire les tests ar (redirection sur l'activité DROP sans passer par l'étape d'authetification)
             startActivity(Intent(this, DropActivity::class.java))
         }
     }
@@ -53,7 +55,7 @@ class SignInActivity : AppCompatActivity() {
 
             override fun onResponse(dataResponse: Response<LoginMutation.Data>) {
                 if (dataResponse.data()?.login()?.token() != null) {
-                    TokenStore.setToken(dataResponse.data()?.login()?.token().toString(),
+                    TokenHandler.setToken(dataResponse.data()?.login()?.token().toString(),
                             this@SignInActivity)
                     startActivity(Intent(this@SignInActivity, DropActivity::class.java))
                     finish()

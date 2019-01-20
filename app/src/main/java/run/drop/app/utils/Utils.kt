@@ -1,10 +1,11 @@
-package run.drop.app
+package run.drop.app.utils
 
 import android.util.Log
 import android.content.Context
 import android.view.Window
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
+import run.drop.app.R
 
 fun setStatusBarColor (window: Window, context: Context) {
     window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)

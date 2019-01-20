@@ -1,10 +1,10 @@
-package run.drop.app
+package run.drop.app.token
 
 import android.content.Context
 import java.io.File
 import java.io.FileNotFoundException
 
-object TokenStore {
+object TokenHandler {
     var token: String? = null
 
     fun initStore(context: Context) {
@@ -15,14 +15,14 @@ object TokenStore {
         context.openFileOutput("token", Context.MODE_PRIVATE).use {
             it.write(token.toByteArray())
         }
-        this.token = token
+        TokenHandler.token = token
     }
 
     fun getToken(context: Context): String? {
         return try {
             val fs = context.openFileInput("token")
             val token = fs.bufferedReader().use { it.readText() }
-            this.token = token
+            TokenHandler.token = token
             token
         } catch (e: FileNotFoundException) {
             null

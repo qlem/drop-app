@@ -1,10 +1,11 @@
-package run.drop.app
+package run.drop.app.location
 
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import run.drop.app.R
 
 class LocationProviderDialog : DialogFragment() {
 

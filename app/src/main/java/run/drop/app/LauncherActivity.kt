@@ -6,6 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import run.drop.app.apollo.Apollo
+import run.drop.app.token.TokenHandler
+import run.drop.app.utils.setStatusBarColor
 
 class LauncherActivity : AppCompatActivity() {
 
@@ -14,7 +17,7 @@ class LauncherActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setStatusBarColor(window, this)
 
-        val token = TokenStore.getToken(this)
+        val token = TokenHandler.getToken(this)
         if (token == null) {
             startActivity(Intent(this, SignInActivity::class.java))
         } else {

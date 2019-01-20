@@ -10,6 +10,9 @@ import android.widget.Toast
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import run.drop.app.apollo.Apollo
+import run.drop.app.token.TokenHandler
+import run.drop.app.utils.setStatusBarColor
 
 class SignUpActivity : AppCompatActivity() {
 
@@ -43,7 +46,7 @@ class SignUpActivity : AppCompatActivity() {
             override fun onResponse(dataResponse: Response<SignupMutation.Data>) {
                 if (dataResponse.data()?.signup()?.token() != null) {
                     startActivity(Intent(this@SignUpActivity, DropActivity::class.java))
-                    TokenStore.setToken(dataResponse.data()?.signup()?.token.toString(), this@SignUpActivity)
+                    TokenHandler.setToken(dataResponse.data()?.signup()?.token.toString(), this@SignUpActivity)
                     finish()
                 } else {
                     this@SignUpActivity.runOnUiThread {

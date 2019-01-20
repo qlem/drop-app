@@ -22,6 +22,13 @@ import androidx.fragment.app.DialogFragment
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
 import com.google.ar.sceneform.ux.ArFragment
+import run.drop.app.apollo.Apollo
+import run.drop.app.dropRenderer.Message
+import run.drop.app.dropRenderer.DropRenderer
+import run.drop.app.location.LocationHandler
+import run.drop.app.location.LocationProviderDialog
+import run.drop.app.token.TokenHandler
+import run.drop.app.utils.setStatusBarColor
 
 
 class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsListener {
@@ -46,7 +53,7 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         setContentView(R.layout.activity_drop)
         setStatusBarColor(window, this)
 
-        // views for test only
+        // test views only
         val quitButton: Button = findViewById(R.id.quit_btn)
         val locationButton: Button = findViewById(R.id.location_btn)
         val latitudeView: TextView = findViewById(R.id.latitude)
@@ -59,26 +66,21 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         // check permissions
         checkPermissions()
 
-        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
-        arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane, _: MotionEvent ->
-            dropButtonEvent(hitResult, plane)
-        }
-
         // check device location
         val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        if (!locationManager.isLocationEnabled) {
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             val dialog = LocationProviderDialog()
             dialog.show(supportFragmentManager, "LocationProviderDialog")
         }
 
-        // init location handler if has permission
+        // init location handler
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
             locationHandler = LocationHandler(this)
         }
 
         quitButton.setOnClickListener {
-            TokenStore.clearToken(this)
+            TokenHandler.clearToken(this)
             startActivity(Intent(this, SignInActivity::class.java))
             finish()
         }
@@ -90,11 +92,17 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
             longitudeView.text = location.longitude.toString()
             altitudeView.text = location.altitude.toString()
         }
+
+        // AR implementation
+        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
+        arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane, _: MotionEvent ->
+            touchEvent(hitResult, plane)
+        }
     }
 
-    private fun dropButtonEvent(hitResult: HitResult, plane: Plane) {
+    private fun touchEvent(hitResult: HitResult, plane: Plane) {
         val dialog = Dialog(this)
-        dialog.setContentView(R.layout.drop_text_dialog)
+        dialog.setContentView(R.layout.drop_dialog)
 
         val dropTextInput = dialog.findViewById<EditText>(R.id.dropTextInput)
         val dropSubmit = dialog.findViewById<Button>(R.id.dropSubmit)
@@ -102,7 +110,7 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         val colorPicker = dialog.findViewById<LinearLayout>(R.id.colorPicker)
         val colorPickerButton = dialog.findViewById<Button>(R.id.colorPickerButton)
 
-        // only for presentation
+        // only for testing
         colorPickerButton.setOnClickListener {
             val color = colorPicker.background as ColorDrawable
             when (color.color) {
@@ -117,11 +125,9 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         dropSubmit.setOnClickListener {
             val color = colorPicker.background as ColorDrawable
 
-            DropText(this,
-                    hitResult.createAnchor(),
-                    TextEntity(dropTextInput.text.toString(), textSize.progress.toFloat(), color.color),
-                    this.arFragment!!,
-                    plane)
+            DropRenderer(this, hitResult.createAnchor(),
+                    Message(dropTextInput.text.toString(), textSize.progress.toFloat(), color.color),
+                    this.arFragment!!, plane)
             dialog.dismiss()
         }
         dialog.show()

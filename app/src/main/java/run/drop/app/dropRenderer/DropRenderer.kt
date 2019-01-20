@@ -1,4 +1,4 @@
-package run.drop.app
+package run.drop.app.dropRenderer
 
 import android.content.Context
 import android.widget.TextView
@@ -11,17 +11,16 @@ import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 
-class DropText(context: Context, anchor: Anchor, textEntity: TextEntity, arFragment: ArFragment, plane: Plane) {
+class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragment: ArFragment, plane: Plane) {
     private val anchor:Anchor? = anchor
     private val arFragment:ArFragment? = arFragment
     private val plane:Plane? = plane
 
     init {
         val textView = TextView(context)
-        textView.text = textEntity.text
-        textView.setTextColor(textEntity.color!!)
-        textView.textSize = textEntity.size!!
-
+        textView.text = message.text
+        textView.setTextColor(message.color!!)
+        textView.textSize = message.size!!
 
         val textNode = TransformableNode(arFragment.transformationSystem)
         val scaleController = textNode.scaleController

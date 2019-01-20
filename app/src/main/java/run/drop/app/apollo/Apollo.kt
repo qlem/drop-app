@@ -1,4 +1,4 @@
-package run.drop.app
+package run.drop.app.apollo
 
 import com.apollographql.apollo.ApolloClient
 
