@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-output='./app/src/main/graphql/schema.json'
+output='./app/src/main/graphql/run/drop/app/schema.json'
 valid="\033[0;32m✔\033[0m"
 wrong="\033[0;31m✖\033[0m"
 normal="\033[0m"
