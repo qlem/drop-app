@@ -1,5 +1,13 @@
 query Dropped {
   dropped {
     id
+    createdAt
+    updatedAt
+    text
+    location {
+      latitude
+      longitude
+      altitude
+    }
   }
 }
