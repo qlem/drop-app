@@ -12,9 +12,9 @@ import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 
 class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragment: ArFragment, plane: Plane) {
-    private val anchor:Anchor? = anchor
-    private val arFragment:ArFragment? = arFragment
-    private val plane:Plane? = plane
+    private val anchor: Anchor? = anchor
+    private val arFragment: ArFragment? = arFragment
+    private val plane: Plane? = plane
 
     init {
         val textView = TextView(context)

@@ -107,13 +107,36 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
 
         dropSubmit.setOnClickListener {
             val color = colorPicker.background as ColorDrawable
+            val location = locationHandler!!.lastLocation!!
 
             DropRenderer(this, hitResult.createAnchor(),
                     Message(dropTextInput.text.toString(), textSize.progress.toFloat(), color.color),
                     this.arFragment!!, plane)
+
+            storeDrop(dropTextInput.text.toString(), location.latitude, location.longitude, location.altitude)
+
             dialog.dismiss()
         }
         dialog.show()
+    }
+
+    private fun storeDrop(message: String, latitude: Double, longitude: Double, altitude: Double) {
+        Apollo.client.mutate(CreateDropMutation.Builder()
+                .message(message)
+                .latitude(latitude)
+                .longitude(longitude)
+                .altitude(altitude)
+                .build()).enqueue(object : ApolloCall.Callback<CreateDropMutation.Data>() {
+
+            override fun onResponse(response: Response<CreateDropMutation.Data>) {
+                Log.i("APOLLO", response.data()!!.createDrop.id)
+            }
+
+            override fun onFailure(e: ApolloException) {
+                Log.e("APOLLO", e.message)
+                e.printStackTrace()
+            }
+        })
     }
 
     private fun checkAuthentication() {
