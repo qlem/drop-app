@@ -1,7 +1,6 @@
 package run.drop.app.apollo
 
 import okhttp3.OkHttpClient
-import run.drop.app.token.TokenHandler
 
 object HttpClient {
     var instance: OkHttpClient

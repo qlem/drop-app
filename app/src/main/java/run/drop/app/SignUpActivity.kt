@@ -11,7 +11,7 @@ import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import run.drop.app.apollo.Apollo
-import run.drop.app.token.TokenHandler
+import run.drop.app.apollo.TokenHandler
 import run.drop.app.utils.setStatusBarColor
 
 class SignUpActivity : AppCompatActivity() {
@@ -45,33 +45,33 @@ class SignUpActivity : AppCompatActivity() {
 
             override fun onResponse(dataResponse: Response<SignupMutation.Data>) {
                 if (dataResponse.data()?.signup()?.token() != null) {
-                    startActivity(Intent(this@SignUpActivity, DropActivity::class.java))
                     TokenHandler.setToken(dataResponse.data()?.signup()?.token.toString(), this@SignUpActivity)
+                    startActivity(Intent(this@SignUpActivity, DropActivity::class.java))
                     finish()
                 } else {
                     this@SignUpActivity.runOnUiThread {
-                        Toast.makeText(applicationContext, "Email address or username already exist.",
+                        Toast.makeText(applicationContext, "Email address or username already exists",
                                 Toast.LENGTH_SHORT).show()
                     }
                 }
             }
 
             override fun onFailure(e: ApolloException) {
-                Log.e("APOLLO", e.message.toString())
-                e.stackTrace.forEach { Log.e("APOLLO", it.toString()) }
+                Log.e("APOLLO", e.message)
+                e.printStackTrace()
             }
         })
     }
 
     private fun checkAllFields(username : String, email : String, password : String, confirmPassword: String): Boolean {
         if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-            Toast.makeText(applicationContext, "Please, complete all fields.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "Missing fields", Toast.LENGTH_SHORT).show()
             return false
         } else {
             if (password == confirmPassword) {
                 return true
             } else {
-                Toast.makeText(applicationContext, "Please, verify your passwords.",
+                Toast.makeText(applicationContext, "Password confirmation failed",
                         Toast.LENGTH_SHORT).show()
             }
         }

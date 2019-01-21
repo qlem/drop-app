@@ -1,4 +1,4 @@
-package run.drop.app.dropRenderer
+package run.drop.app.rendering
 
 import android.content.Context
 import android.widget.TextView

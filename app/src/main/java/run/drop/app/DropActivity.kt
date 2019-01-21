@@ -9,62 +9,51 @@ import android.os.Bundle
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
-import androidx.core.app.ActivityCompat
 import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
 import android.provider.Settings
+import android.util.Log
 import android.view.MotionEvent
 import android.widget.*
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
 import com.google.ar.sceneform.ux.ArFragment
 import run.drop.app.apollo.Apollo
-import run.drop.app.dropRenderer.Message
-import run.drop.app.dropRenderer.DropRenderer
+import run.drop.app.rendering.Message
+import run.drop.app.rendering.DropRenderer
 import run.drop.app.location.LocationHandler
 import run.drop.app.location.LocationProviderDialog
-import run.drop.app.token.TokenHandler
+import run.drop.app.apollo.TokenHandler
 import run.drop.app.utils.setStatusBarColor
 
 
 class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsListener {
 
-    private var requestPermissionCode: Int = 42
-
     private var locationHandler: LocationHandler? = null
 
     private var arFragment: ArFragment? = null
-
-
-    private fun checkPermissions() {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-                    PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        requestPermissionCode)
-            }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drop)
         setStatusBarColor(window, this)
 
-        // test views only
-        val quitButton: Button = findViewById(R.id.quit_btn)
-        val locationButton: Button = findViewById(R.id.location_btn)
-        val latitudeView: TextView = findViewById(R.id.latitude)
-        val longitudeView: TextView = findViewById(R.id.longitude)
-        val altitudeView: TextView = findViewById(R.id.altitude)
+        // init ar scene
+        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
+        arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane, _: MotionEvent ->
+            touchEvent(hitResult, plane)
+        }
 
-        // test authentication
-        testTokenAuth()
-
-        // check permissions
-        checkPermissions()
+        // init location handler
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
+            locationHandler = LocationHandler(this)
+        }
 
         // check device location
         val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -73,11 +62,12 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
             dialog.show(supportFragmentManager, "LocationProviderDialog")
         }
 
-        // init location handler
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
-            locationHandler = LocationHandler(this)
-        }
+        // TODO remove below for release
+        val quitButton: Button = findViewById(R.id.quit_btn)
+        val locationButton: Button = findViewById(R.id.location_btn)
+        val latitudeView: TextView = findViewById(R.id.latitude)
+        val longitudeView: TextView = findViewById(R.id.longitude)
+        val altitudeView: TextView = findViewById(R.id.altitude)
 
         quitButton.setOnClickListener {
             TokenHandler.clearToken(this)
@@ -92,12 +82,6 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
             longitudeView.text = location.longitude.toString()
             altitudeView.text = location.altitude.toString()
         }
-
-        // AR implementation
-        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
-        arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane, _: MotionEvent ->
-            touchEvent(hitResult, plane)
-        }
     }
 
     private fun touchEvent(hitResult: HitResult, plane: Plane) {
@@ -110,7 +94,6 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         val colorPicker = dialog.findViewById<LinearLayout>(R.id.colorPicker)
         val colorPickerButton = dialog.findViewById<Button>(R.id.colorPickerButton)
 
-        // only for testing
         colorPickerButton.setOnClickListener {
             val color = colorPicker.background as ColorDrawable
             when (color.color) {
@@ -133,30 +116,7 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         dialog.show()
     }
 
-    override fun onDestroy() {
-        if (locationHandler != null) {
-            locationHandler!!.removeLocationUpdates()
-        }
-        super.onDestroy()
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            requestPermissionCode -> {
-                when (grantResults[0]) {
-                    PackageManager.PERMISSION_DENIED -> {
-                        Toast.makeText(this, "Drop cannot access to location, permission denied",
-                                Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
-                    PackageManager.PERMISSION_GRANTED -> locationHandler = LocationHandler(this)
-                }
-            }
-        }
-    }
-
-    private fun testTokenAuth() {
+    private fun checkAuthentication() {
         Apollo.client.query(
                 AmIAuthQuery.builder().build()).enqueue(object : ApolloCall.Callback<AmIAuthQuery.Data>() {
 
@@ -167,11 +127,39 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
                 }
             }
 
-            override fun onFailure(e: ApolloException) {}
+            override fun onFailure(e: ApolloException) {
+                Log.e("APOLLO", e.message)
+                e.printStackTrace()
+            }
         })
     }
 
     override fun onOpenSettingsClick(dialog: DialogFragment) {
         startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Drop needs camera and location access", Toast.LENGTH_SHORT).show()
+            finish()
+        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
+            locationHandler = LocationHandler(this)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkAuthentication()
+    }
+
+    override fun onDestroy() {
+        if (locationHandler != null) {
+            locationHandler!!.removeLocationUpdates()
+        }
+        super.onDestroy()
     }
 }

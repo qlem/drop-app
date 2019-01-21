@@ -40,7 +40,7 @@ class LocationHandler(context: Context) {
                 == PackageManager.PERMISSION_GRANTED) {
             client.requestLocationUpdates(locationRequest, locationCallback, null)
         } else {
-            Toast.makeText(context, "Drop cannot access to location, permission denied",
+            Toast.makeText(context, "Cannot access to location, permission denied",
                     Toast.LENGTH_SHORT).show()
         }
     }

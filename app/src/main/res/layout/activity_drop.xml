@@ -29,7 +29,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/location_btn" />
 
-    <fragment android:name="com.google.ar.sceneform.ux.ArFragment"
+    <fragment android:name="run.drop.app.rendering.SceneFragment"
         android:id="@+id/ux_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

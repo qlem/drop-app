@@ -1,4 +1,4 @@
-package run.drop.app.token
+package run.drop.app.apollo
 
 import android.content.Context
 import java.io.File
@@ -7,7 +7,7 @@ import java.io.FileNotFoundException
 object TokenHandler {
     var token: String? = null
 
-    fun initStore(context: Context) {
+    fun init(context: Context) {
         getToken(context)
     }
 
@@ -18,7 +18,7 @@ object TokenHandler {
         TokenHandler.token = token
     }
 
-    fun getToken(context: Context): String? {
+    private fun getToken(context: Context): String? {
         return try {
             val fs = context.openFileInput("token")
             val token = fs.bufferedReader().use { it.readText() }

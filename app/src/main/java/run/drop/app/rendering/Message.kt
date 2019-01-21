@@ -1,4 +1,4 @@
-package run.drop.app.dropRenderer
+package run.drop.app.rendering
 
 class Message(text: String, size: Float, color: Int) {
     val text: String? = text

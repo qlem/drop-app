@@ -12,7 +12,7 @@ import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import run.drop.app.apollo.Apollo
-import run.drop.app.token.TokenHandler
+import run.drop.app.apollo.TokenHandler
 import run.drop.app.utils.setStatusBarColor
 
 class SignInActivity : AppCompatActivity() {
@@ -33,16 +33,12 @@ class SignInActivity : AppCompatActivity() {
         }
 
         signInButton.setOnClickListener{
-
-            // TODO uncomment here - skip identification for develop only
-            /* if (signInEmail.text.isBlank() || signInPassword.text.isBlank()) {
+            if (signInEmail.text.isBlank() || signInPassword.text.isBlank()) {
                 Toast.makeText(applicationContext, "Please enter an email and a password",
                         Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            } else {
+                logIn(signInEmail.text.toString(), signInPassword.text.toString())
             }
-            logIn(signInEmail.text.toString(), signInPassword.text.toString()) */
-
-            startActivity(Intent(this, DropActivity::class.java))
         }
     }
 
@@ -61,14 +57,15 @@ class SignInActivity : AppCompatActivity() {
                     finish()
                 } else {
                     this@SignInActivity.runOnUiThread {
-                        Toast.makeText(applicationContext, "Incorrect password or email.",
+                        Toast.makeText(applicationContext, "Wrong email or password",
                                 Toast.LENGTH_SHORT).show()
                     }
                 }
             }
 
             override fun onFailure(e: ApolloException) {
-                e.stackTrace.forEach { Log.e("APOLLO", it.toString()) }
+                Log.e("APOLLO", e.message)
+                e.printStackTrace()
             }
         })
     }
