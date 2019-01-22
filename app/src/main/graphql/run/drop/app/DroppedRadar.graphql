@@ -1,0 +1,6 @@
+query DroppedRadar { 
+  dropped { 
+    id 
+    location {altitude longitude latitude} 
+  } 
+}

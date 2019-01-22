@@ -37,7 +37,11 @@ import kotlin.collections.ArrayList
 
 
 class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsListener {
-    private var locationHandler: LocationHandler? = null
+
+    companion object {
+        private var locationHandler: LocationHandler? = null
+        fun getLocation() : Location? = locationHandler!!.lastLocation
+    }
 
     private var arFragment: ArFragment? = null
 
