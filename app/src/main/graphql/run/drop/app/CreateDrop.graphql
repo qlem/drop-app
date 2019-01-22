@@ -1,7 +1,8 @@
-mutation CreateDrop($message: String!, $latitude: Float!, $longitude: Float!, $altitude: Float!) {
+mutation CreateDrop($text: String!, $latitude: Float!, $longitude: Float!, $altitude: Float!, $color: String!) {
   createDrop(
-    text: $message
-    location: { latitude: $latitude, longitude: $longitude, altitude: $altitude}
+    text: $text
+    color: $color
+    location: { latitude: $latitude, longitude: $longitude, altitude: $altitude }
   ) {
     id
   }

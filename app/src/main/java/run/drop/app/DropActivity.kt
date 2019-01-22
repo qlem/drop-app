@@ -29,6 +29,7 @@ import run.drop.app.rendering.DropRenderer
 import run.drop.app.location.LocationHandler
 import run.drop.app.location.LocationProviderDialog
 import run.drop.app.apollo.TokenHandler
+import run.drop.app.utils.colorIntToHexString
 import run.drop.app.utils.setStatusBarColor
 
 
@@ -113,16 +114,17 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
                     Message(dropTextInput.text.toString(), textSize.progress.toFloat(), color.color),
                     this.arFragment!!, plane)
 
-            storeDrop(dropTextInput.text.toString(), location.latitude, location.longitude, location.altitude)
+            saveDrop(dropTextInput.text.toString(), colorIntToHexString(color.color), location.latitude, location.longitude, location.altitude)
 
             dialog.dismiss()
         }
         dialog.show()
     }
 
-    private fun storeDrop(message: String, latitude: Double, longitude: Double, altitude: Double) {
+    private fun saveDrop(text: String, color: String, latitude: Double, longitude: Double, altitude: Double) {
         Apollo.client.mutate(CreateDropMutation.Builder()
-                .message(message)
+                .text(text)
+                .color(color)
                 .latitude(latitude)
                 .longitude(longitude)
                 .altitude(altitude)

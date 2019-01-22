@@ -17,3 +17,10 @@ fun log(message: String) {
     Log.d("Drop", message)
 }
 
+fun colorIntToHexString(colorInt: Int): String {
+    return "#${Integer.toHexString(colorInt).drop(2)}"
+}
+
+fun colorHexStringToInt(colorHexString: String): Int {
+    return Integer.parseUnsignedInt("ff${colorHexString.drop(1)}", 16)
+}
