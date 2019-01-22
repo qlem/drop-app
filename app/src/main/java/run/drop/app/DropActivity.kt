@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
+import android.os.Handler
 import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
@@ -20,8 +21,7 @@ import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
-import com.google.ar.core.HitResult
-import com.google.ar.core.Plane
+import com.google.ar.core.*
 import com.google.ar.sceneform.ux.ArFragment
 import run.drop.app.apollo.Apollo
 import run.drop.app.rendering.Message
@@ -29,15 +29,29 @@ import run.drop.app.rendering.DropRenderer
 import run.drop.app.location.LocationHandler
 import run.drop.app.location.LocationProviderDialog
 import run.drop.app.apollo.TokenHandler
+import run.drop.app.rendering.Drop
 import run.drop.app.utils.colorIntToHexString
 import run.drop.app.utils.setStatusBarColor
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsListener {
-
     private var locationHandler: LocationHandler? = null
 
     private var arFragment: ArFragment? = null
+
+    private var drops: MutableList<Drop> = ArrayList()
+
+    private val handler: Handler = Handler()
+    private val timer: Timer = Timer()
+    private val updateDropsTask: TimerTask = object : TimerTask() {
+        override fun run() {
+            handler.post {
+                updateDropList()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,14 +60,34 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
 
         // init ar scene
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
-        arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane, _: MotionEvent ->
-            touchEvent(hitResult, plane)
+        arFragment?.setOnTapArPlaneListener { _: HitResult, _: Plane, _: MotionEvent ->
+            touchEvent()
         }
+        arFragment!!.arSceneView.scene.addOnUpdateListener {
+            var plane: Plane? = null
+            var anchor: Anchor? = null
+            val frame: Frame = arFragment!!.arSceneView.session.update()
+            // TODO increase precision of hitTest
+            val hitResults: MutableList<HitResult> = frame.hitTest(500f, 1000f)
+            for (hitResult in hitResults) {
+                if (hitResult.trackable is Plane) {
+                    plane = hitResult.trackable as Plane
+                    anchor = hitResults.first().createAnchor()
+                    break
+                }
+            }
 
-        // init location handler
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
-            locationHandler = LocationHandler(this)
+            if (plane == null || anchor == null || plane.trackingState != TrackingState.TRACKING) {
+                return@addOnUpdateListener
+            }
+
+            for (drop in drops) {
+                if (!drop.isDisplayed) {
+                    drop.isDisplayed = true
+                    DropRenderer(this, anchor, drop.message, arFragment!!, plane)
+                    break
+                }
+            }
         }
 
         // check device location
@@ -85,7 +119,7 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         }
     }
 
-    private fun touchEvent(hitResult: HitResult, plane: Plane) {
+    private fun touchEvent() {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.drop_dialog)
 
@@ -109,16 +143,42 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         dropSubmit.setOnClickListener {
             val color = colorPicker.background as ColorDrawable
             val location = locationHandler!!.lastLocation!!
-
-            DropRenderer(this, hitResult.createAnchor(),
-                    Message(dropTextInput.text.toString(), textSize.progress.toFloat(), color.color),
-                    this.arFragment!!, plane)
-
-            saveDrop(dropTextInput.text.toString(), colorIntToHexString(color.color), location.latitude, location.longitude, location.altitude)
-
+            saveDrop(dropTextInput.text.toString(), colorIntToHexString(color.color), location.latitude,
+                    location.longitude, location.altitude)
             dialog.dismiss()
         }
         dialog.show()
+    }
+
+    private fun updateDropList() {
+        Apollo.client.query(
+                DroppedQuery.builder().build()).enqueue(object : ApolloCall.Callback<DroppedQuery.Data>() {
+
+            override fun onResponse(response: Response<DroppedQuery.Data>) {
+                val data = response.data()!!.dropped
+                // TODO optimize here
+                if (!data.isEmpty()) {
+                    data.forEach { raw ->
+                        var isPresent = false
+                        drops.forEach { drop ->
+                            if (drop.id == raw.id) {
+                                isPresent = true
+                            }
+                        }
+                        if (!isPresent) {
+                            val message = Message(raw.text, 50f, -14952361)
+                            drops.add(Drop(message, raw.id, false, raw.location.latitude,
+                                    raw.location.longitude, raw.location.altitude))
+                        }
+                    }
+                }
+            }
+
+            override fun onFailure(e: ApolloException) {
+                Log.e("APOLLO", e.message)
+                e.printStackTrace()
+            }
+        })
     }
 
     private fun saveDrop(text: String, color: String, latitude: Double, longitude: Double, altitude: Double) {
@@ -178,13 +238,19 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
 
     override fun onResume() {
         super.onResume()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
+            locationHandler = LocationHandler(this)
+        }
         checkAuthentication()
+        timer.schedule(updateDropsTask, 0, 2000)
     }
 
-    override fun onDestroy() {
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacks(updateDropsTask)
         if (locationHandler != null) {
             locationHandler!!.removeLocationUpdates()
         }
-        super.onDestroy()
     }
 }

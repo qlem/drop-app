@@ -12,9 +12,6 @@ import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 
 class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragment: ArFragment, plane: Plane) {
-    private val anchor: Anchor? = anchor
-    private val arFragment: ArFragment? = arFragment
-    private val plane: Plane? = plane
 
     init {
         val textView = TextView(context)
@@ -22,11 +19,21 @@ class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragmen
         textView.setTextColor(message.color!!)
         textView.textSize = message.size!!
 
+        val anchorNode = AnchorNode(anchor)
+        anchorNode.setParent(arFragment.arSceneView.scene)
+
         val textNode = TransformableNode(arFragment.transformationSystem)
         val scaleController = textNode.scaleController
         scaleController.minScale = 0.01f
         scaleController.maxScale = 40f
         scaleController.sensitivity = 0.4f
+
+        if (plane.type === Plane.Type.VERTICAL) {
+            val yAxis = plane.centerPose.yAxis
+            val planeNormal = Vector3(yAxis[0], yAxis[1], yAxis[2])
+            val quaternion = Quaternion.lookRotation(Vector3.up(), planeNormal)
+            textNode.worldRotation = quaternion
+        }
 
         ViewRenderable.builder()
             .setView(context, textView)
@@ -34,23 +41,9 @@ class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragmen
             .thenAccept { model ->
                 model.isShadowCaster = false
                 model.isShadowReceiver = false
-                onAfterLoad(model, textNode)
+                textNode.setParent(anchorNode)
+                textNode.renderable = model
+                textNode.select()
             }
-    }
-
-    private fun onAfterLoad(model:ViewRenderable, textNode:TransformableNode) {
-        textNode.renderable = model
-
-        if (plane?.type === Plane.Type.VERTICAL) {
-            val yAxis = plane.centerPose.yAxis
-            val planeNormal = Vector3(yAxis[0], yAxis[1], yAxis[2])
-            val quaternion = Quaternion.lookRotation(Vector3.up(), planeNormal)
-            textNode.worldRotation = quaternion
-        }
-
-        val anchorNode = AnchorNode(anchor)
-        anchorNode.setParent(arFragment?.arSceneView?.scene)
-        textNode.setParent(anchorNode)
-        textNode.select()
     }
 }

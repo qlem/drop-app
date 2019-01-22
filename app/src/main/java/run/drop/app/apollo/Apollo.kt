@@ -3,7 +3,9 @@ package run.drop.app.apollo
 import com.apollographql.apollo.ApolloClient
 
 object Apollo {
-    private const val BASE_URL = "http://10.0.2.2:4000"
+
+    // TODO replace by https://api.drop.run for prod
+    private const val BASE_URL = "http://localhost:4000"
 
     val client: ApolloClient = ApolloClient
             .builder()
