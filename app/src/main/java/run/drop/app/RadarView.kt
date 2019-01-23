@@ -32,8 +32,8 @@ class RadarView : View {
 
         override fun run() {
             hndlr.post {
-                if (counter == 10) counter = 0      // Update points every 10 cycles
-                if (counter == 0) updateDrops()     //
+                if (counter == 10) counter = 0
+                if (counter == 0) updateDrops()
 
                 updatePoints()
                 postInvalidate()
@@ -96,8 +96,7 @@ class RadarView : View {
         val height: Int = context.resources.displayMetrics.heightPixels
 
         points.clear()
-        location = DropActivity.getLocation()
-
+        location = DropActivity.locationHandler?.lastLocation
         if (location != null) {
             for (drop in drops) {
                 val y = Math.sin(drop.location.longitude - location!!.longitude) * Math.cos(drop.location.latitude)

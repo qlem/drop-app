@@ -17,6 +17,8 @@ class LocationHandler(context: Context) {
     private var client: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(context)
 
+    private var onLocationUpdateListener: OnLocationUpdateListener? = null
+
     private var locationCallback = object : LocationCallback() {
 
         override fun onLocationAvailability(locationAvailability: LocationAvailability) {
@@ -27,6 +29,7 @@ class LocationHandler(context: Context) {
 
         override fun onLocationResult(result: LocationResult)  {
             lastLocation = result.lastLocation
+            onLocationUpdateListener?.onLocationUpdateListener(lastLocation as Location)
         }
     }
 
@@ -47,5 +50,9 @@ class LocationHandler(context: Context) {
 
     fun removeLocationUpdates() {
         client.removeLocationUpdates(locationCallback)
+    }
+
+    fun setOnLocationUpdateListener(listener: OnLocationUpdateListener) {
+        onLocationUpdateListener = listener
     }
 }

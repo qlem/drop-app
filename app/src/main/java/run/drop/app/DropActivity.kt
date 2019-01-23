@@ -29,7 +29,9 @@ import run.drop.app.rendering.DropRenderer
 import run.drop.app.location.LocationHandler
 import run.drop.app.location.LocationProviderDialog
 import run.drop.app.apollo.TokenHandler
+import run.drop.app.location.OnLocationUpdateListener
 import run.drop.app.rendering.Drop
+import run.drop.app.utils.colorHexStringToInt
 import run.drop.app.utils.colorIntToHexString
 import run.drop.app.utils.setStatusBarColor
 import java.util.*
@@ -39,30 +41,44 @@ import kotlin.collections.ArrayList
 class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsListener {
 
     companion object {
-        private var locationHandler: LocationHandler? = null
-        fun getLocation() : Location? = locationHandler!!.lastLocation
+        var locationHandler: LocationHandler? = null
     }
 
     private var arFragment: ArFragment? = null
-
     private var drops: MutableList<Drop> = ArrayList()
-
     private val handler: Handler = Handler()
     private val timer: Timer = Timer()
+
     private val updateDropsTask: TimerTask = object : TimerTask() {
         override fun run() {
             handler.post {
-                updateDropList()
+                val currentLocation = locationHandler?.lastLocation
+                if (currentLocation != null) {
+                    updateDropList(currentLocation.latitude, currentLocation.longitude, 10)
+                }
             }
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_drop)
-        setStatusBarColor(window, this)
+    private fun initLocationHandler() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
+            locationHandler = LocationHandler(this)
+            locationHandler?.setOnLocationUpdateListener(object : OnLocationUpdateListener {
+                override fun onLocationUpdateListener(location: Location) {
+                    val latitudeView: TextView = findViewById(R.id.latitude)
+                    val longitudeView: TextView = findViewById(R.id.longitude)
+                    val altitudeView: TextView = findViewById(R.id.altitude)
 
-        // init ar scene
+                    latitudeView.text = location.latitude.toString()
+                    longitudeView.text = location.longitude.toString()
+                    altitudeView.text = location.altitude.toString()
+                }
+            })
+        }
+    }
+
+    private fun initArScene() {
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
         arFragment?.setOnTapArPlaneListener { _: HitResult, _: Plane, _: MotionEvent ->
             touchEvent()
@@ -93,6 +109,15 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
                 }
             }
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_drop)
+        setStatusBarColor(window, this)
+
+        // init location handler
+        initLocationHandler()
 
         // check device location
         val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -101,26 +126,19 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
             dialog.show(supportFragmentManager, "LocationProviderDialog")
         }
 
-        // TODO remove below for release
-        val quitButton: Button = findViewById(R.id.quit_btn)
-        val locationButton: Button = findViewById(R.id.location_btn)
-        val latitudeView: TextView = findViewById(R.id.latitude)
-        val longitudeView: TextView = findViewById(R.id.longitude)
-        val altitudeView: TextView = findViewById(R.id.altitude)
+        // init ar scene
+        initArScene()
 
+        // init button for disconnect
+        val quitButton: Button = findViewById(R.id.quit_btn)
         quitButton.setOnClickListener {
             TokenHandler.clearToken(this)
             startActivity(Intent(this, SignInActivity::class.java))
             finish()
         }
 
-        locationButton.setOnClickListener {
-            val location: Location = locationHandler!!.lastLocation!!
-
-            latitudeView.text = location.latitude.toString()
-            longitudeView.text = location.longitude.toString()
-            altitudeView.text = location.altitude.toString()
-        }
+        // refresh drops list every 2 sec
+        timer.schedule(updateDropsTask, 0, 2000)
     }
 
     private fun touchEvent() {
@@ -129,7 +147,8 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
 
         val dropTextInput = dialog.findViewById<EditText>(R.id.dropTextInput)
         val dropSubmit = dialog.findViewById<Button>(R.id.dropSubmit)
-        val textSize = dialog.findViewById<SeekBar>(R.id.seekBarSize)
+        // TODO save text size too
+        // val textSize = dialog.findViewById<SeekBar>(R.id.seekBarSize)
         val colorPicker = dialog.findViewById<LinearLayout>(R.id.colorPicker)
         val colorPickerButton = dialog.findViewById<Button>(R.id.colorPickerButton)
 
@@ -154,25 +173,29 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         dialog.show()
     }
 
-    private fun updateDropList() {
+    private fun updateDropList(latitude: Double, longitude: Double, radius: Int) {
         Apollo.client.query(
-                DroppedQuery.builder().build()).enqueue(object : ApolloCall.Callback<DroppedQuery.Data>() {
+                DroppedAroundQuery.builder()
+                        .latitude(latitude)
+                        .longitude(longitude)
+                        .radius(radius)
+                        .build()).enqueue(object : ApolloCall.Callback<DroppedAroundQuery.Data>() {
 
-            override fun onResponse(response: Response<DroppedQuery.Data>) {
-                val data = response.data()!!.dropped
+            override fun onResponse(response: Response<DroppedAroundQuery.Data>) {
+                val data = response.data()!!.droppedAround
                 // TODO optimize here
                 if (!data.isEmpty()) {
-                    data.forEach { raw ->
+                    data.forEach { item ->
                         var isPresent = false
                         drops.forEach { drop ->
-                            if (drop.id == raw.id) {
+                            if (drop.id == item.id) {
                                 isPresent = true
                             }
                         }
                         if (!isPresent) {
-                            val message = Message(raw.text, 50f, -14952361)
-                            drops.add(Drop(message, raw.id, false, raw.location.latitude,
-                                    raw.location.longitude, raw.location.altitude))
+                            val message = Message(item.text, 50f, colorHexStringToInt(item.color))
+                            drops.add(Drop(message, item.id, false, item.location.latitude,
+                                    item.location.longitude, item.location.altitude))
                         }
                     }
                 }
@@ -182,6 +205,7 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
                 Log.e("APOLLO", e.message)
                 e.printStackTrace()
             }
+
         })
     }
 
@@ -242,19 +266,12 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
 
     override fun onResume() {
         super.onResume()
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
-            locationHandler = LocationHandler(this)
-        }
         checkAuthentication()
-        timer.schedule(updateDropsTask, 0, 2000)
     }
 
-    override fun onPause() {
-        super.onPause()
+    override fun onStop() {
+        super.onStop()
         handler.removeCallbacks(updateDropsTask)
-        if (locationHandler != null) {
-            locationHandler!!.removeLocationUpdates()
-        }
+        locationHandler?.removeLocationUpdates()
     }
 }

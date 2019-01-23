@@ -1,0 +1,12 @@
+query DroppedAround($latitude: Float!, $longitude: Float!, $radius: Int!) {
+  droppedAround(latitude: $latitude, longitude: $longitude, radius: $radius) {
+    id
+    text
+    color
+    location {
+      latitude
+      longitude
+      altitude
+    }
+  }
+}

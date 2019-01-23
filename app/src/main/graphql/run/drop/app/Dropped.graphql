@@ -2,6 +2,7 @@ query Dropped {
   dropped {
     id
     text
+    color
     location {
       latitude
       longitude
