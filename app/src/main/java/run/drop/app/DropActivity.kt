@@ -1,8 +1,8 @@
 package run.drop.app
 
 import android.Manifest
+import android.app.Activity
 import android.app.Dialog
-import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -12,56 +12,48 @@ import com.apollographql.apollo.exception.ApolloException
 import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
 import android.location.Location
-import android.location.LocationManager
 import android.os.Handler
-import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
 import com.google.ar.core.*
 import com.google.ar.sceneform.ux.ArFragment
 import run.drop.app.apollo.Apollo
 import run.drop.app.rendering.Message
 import run.drop.app.rendering.DropRenderer
 import run.drop.app.location.LocationHandler
-import run.drop.app.location.LocationProviderDialog
 import run.drop.app.apollo.TokenHandler
 import run.drop.app.location.OnLocationUpdateListener
 import run.drop.app.rendering.Drop
 import run.drop.app.utils.colorHexStringToInt
 import run.drop.app.utils.colorIntToHexString
 import run.drop.app.utils.setStatusBarColor
-import java.util.*
 import kotlin.collections.ArrayList
 
-
-class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsListener {
+class DropActivity : AppCompatActivity() {
 
     companion object {
-        var locationHandler: LocationHandler? = null
+        var drops: MutableList<Drop> = ArrayList()
     }
 
+    private var locationHandler: LocationHandler? = null
     private var arFragment: ArFragment? = null
-    private var drops: MutableList<Drop> = ArrayList()
-    private val handler: Handler = Handler()
-    private val timer: Timer = Timer()
 
-    private val updateDropsTask: TimerTask = object : TimerTask() {
+    private val handler = Handler()
+    private val runnable = object : Runnable {
         override fun run() {
-            handler.post {
-                val currentLocation = locationHandler?.lastLocation
-                if (currentLocation != null) {
-                    updateDropList(currentLocation.latitude, currentLocation.longitude, 10)
-                }
+            val currentLocation = LocationHandler.lastLocation
+            if (currentLocation != null) {
+                updateDropList(currentLocation.latitude, currentLocation.longitude, 10)
             }
+            handler.postDelayed(this, 2000)
         }
     }
 
     private fun initLocationHandler() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
             locationHandler = LocationHandler(this)
             locationHandler?.setOnLocationUpdateListener(object : OnLocationUpdateListener {
@@ -69,7 +61,6 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
                     val latitudeView: TextView = findViewById(R.id.latitude)
                     val longitudeView: TextView = findViewById(R.id.longitude)
                     val altitudeView: TextView = findViewById(R.id.altitude)
-
                     latitudeView.text = location.latitude.toString()
                     longitudeView.text = location.longitude.toString()
                     altitudeView.text = location.altitude.toString()
@@ -119,13 +110,6 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         // init location handler
         initLocationHandler()
 
-        // check device location
-        val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            val dialog = LocationProviderDialog()
-            dialog.show(supportFragmentManager, "LocationProviderDialog")
-        }
-
         // init ar scene
         initArScene()
 
@@ -136,9 +120,6 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
             startActivity(Intent(this, SignInActivity::class.java))
             finish()
         }
-
-        // refresh drops list every 2 sec
-        timer.schedule(updateDropsTask, 0, 2000)
     }
 
     private fun touchEvent() {
@@ -165,9 +146,11 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
 
         dropSubmit.setOnClickListener {
             val color = colorPicker.background as ColorDrawable
-            val location = locationHandler!!.lastLocation!!
-            saveDrop(dropTextInput.text.toString(), colorIntToHexString(color.color), location.latitude,
-                    location.longitude, location.altitude)
+            val location = LocationHandler.lastLocation
+            if (location != null) {
+                saveDrop(dropTextInput.text.toString(), colorIntToHexString(color.color), location.latitude,
+                        location.longitude, location.altitude)
+            }
             dialog.dismiss()
         }
         dialog.show()
@@ -247,10 +230,6 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
         })
     }
 
-    override fun onOpenSettingsClick(dialog: DialogFragment) {
-        startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED ||
@@ -258,10 +237,26 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
                 PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Drop needs camera and location access", Toast.LENGTH_SHORT).show()
             finish()
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
-            locationHandler = LocationHandler(this)
         }
+        initLocationHandler()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            LocationHandler.REQUEST_SETTINGS_CODE -> when (resultCode) {
+                Activity.RESULT_OK -> initLocationHandler()
+                Activity.RESULT_CANCELED -> {
+                    Toast.makeText(this, "Drop needs device location enabled", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        handler.post(runnable)
     }
 
     override fun onResume() {
@@ -271,7 +266,7 @@ class DropActivity : AppCompatActivity(), LocationProviderDialog.OpenSettingsLis
 
     override fun onStop() {
         super.onStop()
-        handler.removeCallbacks(updateDropsTask)
+        handler.removeCallbacks(runnable)
         locationHandler?.removeLocationUpdates()
     }
 }

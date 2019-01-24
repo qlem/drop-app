@@ -21,7 +21,7 @@ class LauncherActivity : AppCompatActivity() {
         TokenHandler.init(this)
         checkAuthentication()
 
-        // TODO remove here for release (skip identification for development)
+        // TODO remove here for release
         // startActivity(Intent(this, DropActivity::class.java))
     }
 

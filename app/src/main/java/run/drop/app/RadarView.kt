@@ -8,13 +8,8 @@ import android.graphics.PointF
 import android.location.Location
 import android.os.Handler
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
-import com.apollographql.apollo.ApolloCall
-import com.apollographql.apollo.api.Response
-import com.apollographql.apollo.exception.ApolloException
-import run.drop.app.apollo.Apollo
-import java.util.*
+import run.drop.app.location.LocationHandler
 import kotlin.collections.ArrayList
 
 class RadarView : View {
@@ -22,23 +17,12 @@ class RadarView : View {
     private var pen: Paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var location: Location? = null
     private var points: MutableList<PointF> = ArrayList()
-    private var drops: List<DroppedRadarQuery.Dropped> = ArrayList()
 
-    private val hndlr: Handler = Handler()
-    private var timer: Timer = Timer()
-    private val updateRadarTask: TimerTask = object : TimerTask()
-    {
-        private var counter: Int = 0
-
+    private val mHandler = Handler()
+    private val runnable = object : Runnable {
         override fun run() {
-            hndlr.post {
-                if (counter == 10) counter = 0
-                if (counter == 0) updateDrops()
-
-                updatePoints()
-                postInvalidate()
-                counter += 1
-            }
+            updatePoints()
+            mHandler.postDelayed(this, 2000)
         }
     }
 
@@ -56,7 +40,7 @@ class RadarView : View {
 
     private fun init() {
         pen.color = Color.YELLOW
-        timer.schedule(updateRadarTask, 1000, 1000)
+        mHandler.post(runnable)
     }
 
     private fun addPoint(angle: Float, width: Double, height: Double) {
@@ -96,33 +80,19 @@ class RadarView : View {
         val height: Int = context.resources.displayMetrics.heightPixels
 
         points.clear()
-        location = DropActivity.locationHandler?.lastLocation
+        location = LocationHandler.lastLocation
         if (location != null) {
-            for (drop in drops) {
-                val y = Math.sin(drop.location.longitude - location!!.longitude) * Math.cos(drop.location.latitude)
-                val x = Math.cos(location!!.latitude) * Math.sin(drop.location.latitude) -
-                        Math.sin(location!!.latitude) * Math.cos(drop.location.latitude) * Math.cos(drop.location.longitude - location!!.longitude)
+            for (drop in DropActivity.drops) {
+                val y = Math.sin(drop.longitude - location!!.longitude) * Math.cos(drop.latitude)
+                val x = Math.cos(location!!.latitude) * Math.sin(drop.latitude) -
+                        Math.sin(location!!.latitude) * Math.cos(drop.latitude) *
+                        Math.cos(drop.longitude - location!!.longitude)
 
                 val brng = Math.toDegrees(Math.atan2(y, x)).toInt()
-
                 addPoint(brng.toFloat(), width.toDouble(), height.toDouble())
             }
+            invalidate()
         }
-    }
-
-    private fun updateDrops() {
-        Apollo.client.query(
-                DroppedRadarQuery.builder().build()).enqueue(object : ApolloCall.Callback<DroppedRadarQuery.Data>() {
-
-                    override fun onResponse(response: Response<DroppedRadarQuery.Data>) {
-                        drops = response.data()!!.dropped()
-                    }
-
-                    override fun onFailure(e: ApolloException) {
-                        Log.e("APOLLO", e.message)
-                        e.printStackTrace()
-                    }
-                })
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -132,7 +102,7 @@ class RadarView : View {
     }
 
     override fun onDetachedFromWindow() {
-        handler.removeCallbacks(updateRadarTask)
+        mHandler.removeCallbacks(runnable)
         super.onDetachedFromWindow()
     }
 }
