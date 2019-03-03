@@ -46,7 +46,7 @@ class DropActivity : AppCompatActivity() {
         override fun run() {
             val currentLocation = LocationHandler.lastLocation
             if (currentLocation != null) {
-                updateDropList(currentLocation.latitude, currentLocation.longitude, 10)
+                updateDropList(currentLocation.latitude, currentLocation.longitude, 10.0)
             }
             handler.postDelayed(this, 2000)
         }
@@ -156,7 +156,7 @@ class DropActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun updateDropList(latitude: Double, longitude: Double, radius: Int) {
+    private fun updateDropList(latitude: Double, longitude: Double, radius: Double) {
         Apollo.client.query(
                 DroppedAroundQuery.builder()
                         .latitude(latitude)

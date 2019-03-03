@@ -1,4 +1,4 @@
-query DroppedAround($latitude: Float!, $longitude: Float!, $radius: Int!) {
+query DroppedAround($latitude: Float!, $longitude: Float!, $radius: Float!) {
   droppedAround(latitude: $latitude, longitude: $longitude, radius: $radius) {
     id
     text
