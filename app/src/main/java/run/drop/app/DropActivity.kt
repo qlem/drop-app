@@ -77,7 +77,7 @@ class DropActivity : AppCompatActivity() {
         arFragment!!.arSceneView.scene.addOnUpdateListener {
             var plane: Plane? = null
             var anchor: Anchor? = null
-            val frame: Frame = arFragment!!.arSceneView.session.update()
+            val frame: Frame = arFragment!!.arSceneView.session!!.update()
             // TODO increase precision of hitTest
             val hitResults: MutableList<HitResult> = frame.hitTest(500f, 1000f)
             for (hitResult in hitResults) {
