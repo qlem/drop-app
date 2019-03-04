@@ -5,17 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SignUpActivity">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/drop_logo"
             android:layout_width="190dp"
             android:layout_height="205dp"
-            android:layout_marginStart="108dp"
             android:layout_marginTop="44dp"
             android:adjustViewBounds="true"
             android:contentDescription="@string/drop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/drop_logo" />
@@ -31,7 +34,7 @@
             android:hint="@string/username_hint"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView">
+            app:layout_constraintTop_toBottomOf="@+id/drop_logo">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/username"

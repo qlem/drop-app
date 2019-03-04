@@ -6,7 +6,6 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
@@ -71,11 +70,11 @@ class SignInActivity : AppCompatActivity() {
     }
 
     private fun checkEmptyFields(email: EditText, password: EditText): Boolean {
-        if (email.text.toString() == "") {
+        if (email.text.isBlank()) {
             email.error = "Can not be empty"
             return false
         }
-        if (password.text.toString() == "") {
+        if (password.text.isBlank()) {
             password.error = "Can not be empty"
             return false
         }

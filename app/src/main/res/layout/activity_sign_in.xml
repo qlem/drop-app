@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/imageView2"
+        android:id="@+id/drop_logo"
         android:layout_width="190dp"
         android:layout_height="205dp"
-        android:layout_marginStart="108dp"
         android:layout_marginTop="44dp"
         android:adjustViewBounds="true"
+        android:contentDescription="@string/drop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/drop_logo"
-        android:contentDescription="@string/drop" />
+        app:srcCompat="@drawable/drop_logo" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout2"
@@ -28,7 +28,7 @@
         android:hint="@string/email_hint"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView2">
+        app:layout_constraintTop_toBottomOf="@+id/drop_logo">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/email"
@@ -83,6 +83,5 @@
         android:text="@string/sign_up_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textInputLayout4" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

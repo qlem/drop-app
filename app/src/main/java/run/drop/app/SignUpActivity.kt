@@ -61,19 +61,19 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun checkAllFields(username: EditText, email: EditText, password: EditText, confirmPassword: EditText): Boolean {
-        if (username.text.toString() == "") {
+        if (username.text.isBlank()) {
             username.error = "Can not be empty"
             return false
         }
-        if (email.text.toString() == "") {
+        if (email.text.isBlank()) {
             email.error = "Can not be empty"
             return false
         }
-        if (password.text.toString() == "") {
+        if (password.text.isBlank()) {
             password.error = "Can not be empty"
             return false
         }
-        if (password.text.toString() != "" && password.text.toString() != confirmPassword.text.toString()) {
+        if (password.text.toString() != confirmPassword.text.toString()) {
             confirmPassword.error = "Must be the same as the password"
             return false
         }
