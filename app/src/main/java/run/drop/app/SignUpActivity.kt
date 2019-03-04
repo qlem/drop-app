@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
@@ -15,7 +14,6 @@ import run.drop.app.apollo.TokenHandler
 import run.drop.app.utils.setStatusBarColor
 
 class SignUpActivity : AppCompatActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
@@ -25,22 +23,21 @@ class SignUpActivity : AppCompatActivity() {
         val email: EditText = findViewById(R.id.email)
         val password: EditText = findViewById(R.id.password)
         val confirmedPassword: EditText = findViewById(R.id.confirmed_password)
-        val button: Button = findViewById(R.id.new_account_button)
+        val signUpButton: Button = findViewById(R.id.new_account_button)
 
-        button.setOnClickListener{
-            if (checkAllFields(username.text.toString(), email.text.toString(), password.text.toString(),
-                            confirmedPassword.text.toString())) {
-                createAccount(username.text.toString(), email.text.toString(), password.text.toString())
+        signUpButton.setOnClickListener {
+            if (checkAllFields(username, email, password, confirmedPassword)) {
+                createAccount(username, email, password)
             }
         }
     }
 
-    private fun createAccount(username : String, email : String, password : String){
+    private fun createAccount(username : EditText, email : EditText, password : EditText) {
         Apollo.client.mutate(
                 SignupMutation.builder()
-                        .username(username)
-                        .email(email)
-                        .password(password)
+                        .username(username.text.toString())
+                        .email(email.text.toString())
+                        .password(password.text.toString())
                         .build())?.enqueue(object : ApolloCall.Callback<SignupMutation.Data>() {
 
             override fun onResponse(dataResponse: Response<SignupMutation.Data>) {
@@ -50,8 +47,8 @@ class SignUpActivity : AppCompatActivity() {
                     finish()
                 } else {
                     this@SignUpActivity.runOnUiThread {
-                        Toast.makeText(applicationContext, "Email address or username already exists",
-                                Toast.LENGTH_SHORT).show()
+                        username.error = "Email address or username already exists"
+                        email.error = "Email address or username already exists"
                     }
                 }
             }
@@ -63,18 +60,23 @@ class SignUpActivity : AppCompatActivity() {
         })
     }
 
-    private fun checkAllFields(username : String, email : String, password : String, confirmPassword: String): Boolean {
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-            Toast.makeText(applicationContext, "Missing fields", Toast.LENGTH_SHORT).show()
+    private fun checkAllFields(username: EditText, email: EditText, password: EditText, confirmPassword: EditText): Boolean {
+        if (username.text.toString() == "") {
+            username.error = "Can not be empty"
             return false
-        } else {
-            if (password == confirmPassword) {
-                return true
-            } else {
-                Toast.makeText(applicationContext, "Password confirmation failed",
-                        Toast.LENGTH_SHORT).show()
-            }
         }
-        return false
+        if (email.text.toString() == "") {
+            email.error = "Can not be empty"
+            return false
+        }
+        if (password.text.toString() == "") {
+            password.error = "Can not be empty"
+            return false
+        }
+        if (password.text.toString() != "" && password.text.toString() != confirmPassword.text.toString()) {
+            confirmPassword.error = "Must be the same as the password"
+            return false
+        }
+        return true
     }
 }

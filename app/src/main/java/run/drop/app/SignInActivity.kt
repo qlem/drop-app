@@ -27,38 +27,38 @@ class SignInActivity : AppCompatActivity() {
         val signInButton: Button = findViewById(R.id.sign_in_button)
         val signUpButton: TextView = findViewById(R.id.sign_up_button)
 
-        signUpButton.setOnClickListener{
+        signUpButton.setOnClickListener {
             startActivity(Intent(this, SignUpActivity::class.java))
             finish()
         }
 
-        signInButton.setOnClickListener{
-            if (signInEmail.text.isBlank() || signInPassword.text.isBlank()) {
-                Toast.makeText(applicationContext, "Please enter an email and a password",
-                        Toast.LENGTH_SHORT).show()
-            } else {
-                logIn(signInEmail.text.toString(), signInPassword.text.toString())
+        signInButton.setOnClickListener {
+            if (checkEmptyFields(signInEmail, signInPassword)) {
+                logIn(signInEmail, signInPassword)
             }
         }
     }
 
-    private fun logIn(email : String, password : String) {
+    private fun logIn(email : EditText, password : EditText) {
         Apollo.client.mutate(
                 LoginMutation.builder()
-                        .email(email)
-                        .password(password)
+                        .email(email.text.toString())
+                        .password(password.text.toString())
                         .build())?.enqueue(object : ApolloCall.Callback<LoginMutation.Data>() {
 
             override fun onResponse(dataResponse: Response<LoginMutation.Data>) {
-                if (dataResponse.data()?.login()?.token() != null) {
-                    TokenHandler.setToken(dataResponse.data()?.login()?.token().toString(),
-                            this@SignInActivity)
-                    startActivity(Intent(this@SignInActivity, DropActivity::class.java))
-                    finish()
-                } else {
-                    this@SignInActivity.runOnUiThread {
-                        Toast.makeText(applicationContext, "Wrong email or password",
-                                Toast.LENGTH_SHORT).show()
+                when {
+                    dataResponse.data()?.login()?.token() != null -> {
+                        TokenHandler.setToken(dataResponse.data()?.login()?.token().toString(),
+                                this@SignInActivity)
+                        startActivity(Intent(this@SignInActivity, DropActivity::class.java))
+                        finish()
+                    }
+                    dataResponse.errors()[0].message() == "Invalid email" -> this@SignInActivity.runOnUiThread {
+                        email.error = "Wrong email"
+                    }
+                    else -> this@SignInActivity.runOnUiThread {
+                        password.error = "Wrong password"
                     }
                 }
             }
@@ -68,5 +68,17 @@ class SignInActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         })
+    }
+
+    private fun checkEmptyFields(email: EditText, password: EditText): Boolean {
+        if (email.text.toString() == "") {
+            email.error = "Can not be empty"
+            return false
+        }
+        if (password.text.toString() == "") {
+            password.error = "Can not be empty"
+            return false
+        }
+        return true
     }
 }
