@@ -31,7 +31,7 @@ class LauncherActivity : AppCompatActivity() {
 
             override fun onResponse(response: Response<AmIAuthQuery.Data>) {
                 if (!response.data()!!.amIAuth().isAuth()) {
-                    startActivity(Intent(this@LauncherActivity, SignInActivity::class.java))
+                    startActivity(Intent(this@LauncherActivity, AuthenticationActivity::class.java))
                 } else {
                     startActivity(Intent(this@LauncherActivity, DropActivity::class.java))
                 }

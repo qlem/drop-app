@@ -117,7 +117,7 @@ class DropActivity : AppCompatActivity() {
         val quitButton: Button = findViewById(R.id.quit_btn)
         quitButton.setOnClickListener {
             TokenHandler.clearToken(this)
-            startActivity(Intent(this, SignInActivity::class.java))
+            startActivity(Intent(this, AuthenticationActivity::class.java))
             finish()
         }
     }
@@ -218,7 +218,7 @@ class DropActivity : AppCompatActivity() {
 
             override fun onResponse(response: Response<AmIAuthQuery.Data>) {
                 if (!response.data()!!.amIAuth().isAuth()) {
-                    startActivity(Intent(this@DropActivity, SignInActivity::class.java))
+                    startActivity(Intent(this@DropActivity, AuthenticationActivity::class.java))
                     finish()
                 }
             }

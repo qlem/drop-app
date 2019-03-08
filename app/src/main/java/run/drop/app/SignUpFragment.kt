@@ -1,52 +1,58 @@
 package run.drop.app
 
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import androidx.fragment.app.Fragment
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
-import run.drop.app.utils.setStatusBarColor
 
-class SignUpActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_sign_up)
-        setStatusBarColor(window, this)
-
-        val username: EditText = findViewById(R.id.username)
-        val email: EditText = findViewById(R.id.email)
-        val password: EditText = findViewById(R.id.password)
-        val confirmedPassword: EditText = findViewById(R.id.confirmed_password)
-        val signUpButton: Button = findViewById(R.id.new_account_button)
+class SignUpFragment : Fragment() {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        val view: View =inflater.inflate(R.layout.sign_up_fragment,container,false)
+        val username: EditText = view.findViewById(R.id.username)
+        val email: EditText = view.findViewById(R.id.email)
+        val password: EditText = view.findViewById(R.id.password)
+        val confirmedPassword: EditText = view.findViewById(R.id.confirmed_password)
+        val signUpButton: Button = view.findViewById(R.id.new_account_button)
 
         signUpButton.setOnClickListener {
             if (checkAllFields(username, email, password, confirmedPassword)) {
                 createAccount(username, email, password)
             }
         }
+        return view
     }
 
     private fun createAccount(username : EditText, email : EditText, password : EditText) {
+        val fragmentTransaction = fragmentManager!!.beginTransaction()
+        val signInFragment = SignInFragment()
+        val bundle = Bundle()
+
         Apollo.client.mutate(
                 SignupMutation.builder()
                         .username(username.text.toString())
                         .email(email.text.toString())
                         .password(password.text.toString())
                         .build())?.enqueue(object : ApolloCall.Callback<SignupMutation.Data>() {
-
             override fun onResponse(dataResponse: Response<SignupMutation.Data>) {
                 if (dataResponse.data()?.signup()?.token() != null) {
-                    TokenHandler.setToken(dataResponse.data()?.signup()?.token.toString(), this@SignUpActivity)
-                    startActivity(Intent(this@SignUpActivity, DropActivity::class.java))
-                    finish()
+                    TokenHandler.setToken(dataResponse.data()?.signup()?.token.toString(), context)
+                    bundle.putString("email", email.text.toString())
+                    bundle.putString("password", password.text.toString())
+                    signInFragment.arguments = bundle
+                    fragmentTransaction.replace(R.id.main_layout, signInFragment)
+                    fragmentTransaction.addToBackStack(null)
+                    fragmentTransaction.commit()
                 } else {
-                    this@SignUpActivity.runOnUiThread {
+                    activity?.runOnUiThread {
                         username.error = "Email address or username already exists"
                         email.error = "Email address or username already exists"
                     }

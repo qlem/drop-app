@@ -3,39 +3,42 @@ package run.drop.app
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
-import run.drop.app.utils.setStatusBarColor
 
-class SignInActivity : AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_sign_in)
-        setStatusBarColor(window, this)
+class SignInFragment : Fragment() {
+    var listener: OnClickFragmentListener?=null
 
-        val signInEmail: EditText = findViewById(R.id.email)
-        val signInPassword: EditText = findViewById(R.id.password)
-        val signInButton: Button = findViewById(R.id.sign_in_button)
-        val signUpButton: TextView = findViewById(R.id.sign_up_button)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        val view: View =inflater.inflate(R.layout.sign_in_fragment,container,false)
+        val signInEmail: EditText = view.findViewById(R.id.email)
+        val signInPassword: EditText = view.findViewById(R.id.password)
+        val signUpButton: Button = view.findViewById(R.id.sign_up_button)
+        val signInButton: Button = view.findViewById(R.id.sign_in_button)
 
-        signUpButton.setOnClickListener {
-            startActivity(Intent(this, SignUpActivity::class.java))
-            finish()
+        if (arguments?.get("email") != null && arguments?.get("password") != null){
+            signInEmail.setText(arguments?.get("email").toString())
+            signInPassword.setText(arguments?.get("password").toString())
         }
-
+        signUpButton.setOnClickListener{
+            listener?.signUp()
+        }
         signInButton.setOnClickListener {
             if (checkEmptyFields(signInEmail, signInPassword)) {
                 logIn(signInEmail, signInPassword)
             }
         }
+        return view
     }
 
     private fun logIn(email : EditText, password : EditText) {
@@ -49,14 +52,13 @@ class SignInActivity : AppCompatActivity() {
                 when {
                     dataResponse.data()?.login()?.token() != null -> {
                         TokenHandler.setToken(dataResponse.data()?.login()?.token().toString(),
-                                this@SignInActivity)
-                        startActivity(Intent(this@SignInActivity, DropActivity::class.java))
-                        finish()
+                                context)
+                        startActivity(Intent(context, DropActivity::class.java))
                     }
-                    dataResponse.errors()[0].message() == "Invalid email" -> this@SignInActivity.runOnUiThread {
+                    dataResponse.errors()[0].message() == "Invalid email" -> activity?.runOnUiThread {
                         email.error = "Wrong email"
                     }
-                    else -> this@SignInActivity.runOnUiThread {
+                    else -> activity?.runOnUiThread {
                         password.error = "Wrong password"
                     }
                 }
@@ -79,5 +81,9 @@ class SignInActivity : AppCompatActivity() {
             return false
         }
         return true
+    }
+
+    interface OnClickFragmentListener {
+        fun signUp()
     }
 }

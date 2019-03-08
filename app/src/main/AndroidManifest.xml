@@ -26,9 +26,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SignInActivity"
-            android:theme="@style/AppTheme"/>
-        <activity android:name=".SignUpActivity"
+            android:name=".AuthenticationActivity"
             android:theme="@style/AppTheme"/>
         <activity android:name=".DropActivity"
             android:theme="@style/AppTheme"/>
