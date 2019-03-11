@@ -11,8 +11,8 @@ object TokenHandler {
         getToken(context)
     }
 
-    fun setToken(token: String, context: Context?) {
-        context?.openFileOutput("token", Context.MODE_PRIVATE)?.use {
+    fun setToken(token: String, context: Context) {
+        context.openFileOutput("token", Context.MODE_PRIVATE).use {
             it.write(token.toByteArray())
         }
         TokenHandler.token = token

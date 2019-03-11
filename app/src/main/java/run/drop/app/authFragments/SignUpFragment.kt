@@ -1,4 +1,4 @@
-package run.drop.app
+package run.drop.app.authFragments
 
 import android.os.Bundle
 import android.util.Log
@@ -11,23 +11,27 @@ import androidx.fragment.app.Fragment
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import run.drop.app.R
+import run.drop.app.SignupMutation
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
 
 class SignUpFragment : Fragment() {
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val view: View =inflater.inflate(R.layout.sign_up_fragment,container,false)
+        val view: View = inflater.inflate(R.layout.sign_up_fragment,container,false)
         val username: EditText = view.findViewById(R.id.username)
         val email: EditText = view.findViewById(R.id.email)
         val password: EditText = view.findViewById(R.id.password)
         val confirmedPassword: EditText = view.findViewById(R.id.confirmed_password)
-        val signUpButton: Button = view.findViewById(R.id.new_account_button)
+        val signUpButton: Button = view.findViewById(R.id.sign_up_button)
 
         signUpButton.setOnClickListener {
             if (checkAllFields(username, email, password, confirmedPassword)) {
                 createAccount(username, email, password)
             }
         }
+
         return view
     }
 
@@ -42,9 +46,10 @@ class SignUpFragment : Fragment() {
                         .email(email.text.toString())
                         .password(password.text.toString())
                         .build())?.enqueue(object : ApolloCall.Callback<SignupMutation.Data>() {
+
             override fun onResponse(dataResponse: Response<SignupMutation.Data>) {
                 if (dataResponse.data()?.signup()?.token() != null) {
-                    TokenHandler.setToken(dataResponse.data()?.signup()?.token.toString(), context)
+                    TokenHandler.setToken(dataResponse.data()?.signup()?.token().toString(), context!!)
                     bundle.putString("email", email.text.toString())
                     bundle.putString("password", password.text.toString())
                     signInFragment.arguments = bundle

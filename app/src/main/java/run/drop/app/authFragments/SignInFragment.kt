@@ -1,4 +1,4 @@
-package run.drop.app
+package run.drop.app.authFragments
 
 import android.content.Intent
 import android.os.Bundle
@@ -14,30 +14,36 @@ import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
-
+import run.drop.app.DropActivity
+import run.drop.app.LoginMutation
+import run.drop.app.R
 
 class SignInFragment : Fragment() {
-    var listener: OnClickFragmentListener?=null
+
+    var listener: OnClickSignInFragmentListener? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val view: View =inflater.inflate(R.layout.sign_in_fragment,container,false)
-        val signInEmail: EditText = view.findViewById(R.id.email)
-        val signInPassword: EditText = view.findViewById(R.id.password)
+        val view: View = inflater.inflate(R.layout.sign_in_fragment,container,false)
+        val email: EditText = view.findViewById(R.id.email)
+        val password: EditText = view.findViewById(R.id.password)
         val signUpButton: Button = view.findViewById(R.id.sign_up_button)
         val signInButton: Button = view.findViewById(R.id.sign_in_button)
 
-        if (arguments?.get("email") != null && arguments?.get("password") != null){
-            signInEmail.setText(arguments?.get("email").toString())
-            signInPassword.setText(arguments?.get("password").toString())
+        if (arguments?.get("email") != null && arguments?.get("password") != null) {
+            email.setText(arguments?.get("email").toString())
+            password.setText(arguments?.get("password").toString())
         }
-        signUpButton.setOnClickListener{
-            listener?.signUp()
+
+        signUpButton.setOnClickListener {
+            listener?.showSignUpFragment()
         }
+
         signInButton.setOnClickListener {
-            if (checkEmptyFields(signInEmail, signInPassword)) {
-                logIn(signInEmail, signInPassword)
+            if (checkEmptyFields(email, password)) {
+                logIn(email, password)
             }
         }
+
         return view
     }
 
@@ -51,8 +57,7 @@ class SignInFragment : Fragment() {
             override fun onResponse(dataResponse: Response<LoginMutation.Data>) {
                 when {
                     dataResponse.data()?.login()?.token() != null -> {
-                        TokenHandler.setToken(dataResponse.data()?.login()?.token().toString(),
-                                context)
+                        TokenHandler.setToken(dataResponse.data()?.login()?.token().toString(), context!!)
                         startActivity(Intent(context, DropActivity::class.java))
                     }
                     dataResponse.errors()[0].message() == "Invalid email" -> activity?.runOnUiThread {
@@ -81,9 +86,5 @@ class SignInFragment : Fragment() {
             return false
         }
         return true
-    }
-
-    interface OnClickFragmentListener {
-        fun signUp()
     }
 }

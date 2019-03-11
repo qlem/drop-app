@@ -2,9 +2,12 @@ package run.drop.app
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import run.drop.app.authFragments.OnClickSignInFragmentListener
+import run.drop.app.authFragments.SignInFragment
+import run.drop.app.authFragments.SignUpFragment
 import run.drop.app.utils.setStatusBarColor
 
-class AuthenticationActivity : AppCompatActivity(), SignInFragment.OnClickFragmentListener {
+class AuthActivity : AppCompatActivity(), OnClickSignInFragmentListener {
 
     private lateinit var signInFragment: SignInFragment
     private lateinit var signUpFragment: SignUpFragment
@@ -14,29 +17,18 @@ class AuthenticationActivity : AppCompatActivity(), SignInFragment.OnClickFragme
         setContentView(R.layout.activity_authentication)
         setStatusBarColor(window, this)
 
-        initFragments()
-        showSignInFragment()
-    }
-
-    private fun initFragments() {
-        signInFragment = SignInFragment().apply { listener = this@AuthenticationActivity }
+        signInFragment = SignInFragment().apply { listener = this@AuthActivity }
         signUpFragment = SignUpFragment()
-    }
 
-    private fun showSignInFragment() {
         supportFragmentManager.beginTransaction()
                 .replace(R.id.main_layout,signInFragment, SignInFragment::class.java.name)
                 .commit()
     }
 
-    private fun showSignUpFragment(){
+    override fun showSignUpFragment() {
         supportFragmentManager.beginTransaction()
                 .addToBackStack(null)
                 .replace(R.id.main_layout,signUpFragment, SignUpFragment::class.java.name)
                 .commit()
-    }
-
-    override fun signUp() {
-        showSignUpFragment()
     }
 }
