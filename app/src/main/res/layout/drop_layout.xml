@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/drop_message"
+        android:layout_width="133dp"
+        android:layout_height="wrap_content"
+        android:textAlignment="center" />
+
+    <ImageButton
+        android:id="@+id/like_button"
+        android:layout_width="47dp"
+        android:layout_height="47dp"
+        android:layout_below="@+id/drop_message"
+        android:layout_alignStart="@+id/drop_message"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="-8dp"
+        android:backgroundTint="@color/colorTransparent"
+        android:contentDescription="@string/like_button"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:src="@drawable/like_transparent" />
+
+    <TextView
+        android:id="@+id/like_total"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/like_button"
+        android:layout_alignStart="@+id/like_button"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="0dp"
+        android:text="2000"
+        android:textAlignment="center" />
+
+    <ImageButton
+        android:id="@+id/dislike_button"
+        android:layout_width="47dp"
+        android:layout_height="47dp"
+        android:layout_below="@+id/drop_message"
+        android:layout_marginStart="29dp"
+        android:layout_marginTop="-8dp"
+        android:layout_toEndOf="@+id/like_button"
+        android:backgroundTint="@color/colorTransparent"
+        android:contentDescription="@string/dislike_button"
+        android:scaleType="fitXY"
+        android:src="@drawable/dislike_transparent" />
+
+    <TextView
+        android:id="@+id/dislike_total"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/dislike_button"
+        android:layout_marginStart="27dp"
+        android:layout_marginTop="-1dp"
+        android:layout_toEndOf="@+id/like_total"
+        android:text="300000"
+        android:textAlignment="center" />
+</RelativeLayout>

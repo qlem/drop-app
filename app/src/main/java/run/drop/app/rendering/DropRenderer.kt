@@ -1,6 +1,7 @@
 package run.drop.app.rendering
 
 import android.content.Context
+import android.widget.ImageButton
 import android.widget.TextView
 import com.google.ar.core.Anchor
 import com.google.ar.core.Plane
@@ -10,15 +11,10 @@ import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import run.drop.app.R
 
 class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragment: ArFragment, plane: Plane) {
-
     init {
-        val textView = TextView(context)
-        textView.text = message.text
-        textView.setTextColor(message.color!!)
-        textView.textSize = message.size!!
-
         val anchorNode = AnchorNode(anchor)
         anchorNode.setParent(arFragment.arSceneView.scene)
 
@@ -36,9 +32,24 @@ class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragmen
         }
 
         ViewRenderable.builder()
-            .setView(context, textView)
+            .setView(context, R.layout.drop_layout)
             .build()
             .thenAccept { model ->
+                val dropMessage = model.view.findViewById<TextView>(R.id.drop_message)
+                val likeButton = model.view.findViewById<ImageButton>(R.id.like_button)
+                val dislikeButton = model.view.findViewById<ImageButton>(R.id.dislike_button)
+
+                dropMessage.text = message.text
+                dropMessage.setTextColor(message.color!!)
+                dropMessage.textSize = message.size!!
+                likeButton.setOnClickListener {
+                    likeButton.setImageResource(R.drawable.like_filled)
+                    dislikeButton.setImageResource(R.drawable.dislike_transparent)
+                }
+                dislikeButton.setOnClickListener {
+                    dislikeButton.setImageResource(R.drawable.dislike_filled)
+                    likeButton.setImageResource(R.drawable.like_transparent)
+                }
                 model.isShadowCaster = false
                 model.isShadowReceiver = false
                 textNode.setParent(anchorNode)
