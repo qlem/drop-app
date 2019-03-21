@@ -31,6 +31,12 @@ android {
     }
 }
 
+repositories {
+    maven {
+        url "http://github.com/wada811/Android-Material-Design-Colors/raw/master/repository/"
+    }
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -48,6 +54,7 @@ dependencies {
     implementation 'com.google.ar:core:1.7.0'
     implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.7.0'
     implementation 'com.google.ar.sceneform:core:1.7.0'
+    implementation "com.github.skydoves:colorpickerview:2.1.1"
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
 }

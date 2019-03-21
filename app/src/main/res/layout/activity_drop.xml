@@ -21,41 +21,97 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="410dp"
+        android:layout_height="66dp"
+        android:background="@color/toolbarColor"
+        android:fadingEdge="vertical|none"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/altitude_label"
+        style="@style/Base.TextAppearance.MaterialComponents.Button"
+        android:layout_width="40dp"
+        android:layout_height="25dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:ems="10"
+        android:importantForAutofill="no"
+        android:text="@string/altitude_label"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/latitude_label"
+        style="@style/Base.TextAppearance.MaterialComponents.Button"
+        android:layout_width="40dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:importantForAutofill="no"
+        android:text="@string/latitude_label"
+        android:textAlignment="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/longitude_label"
+        style="@style/Base.TextAppearance.MaterialComponents.Button"
+        android:layout_width="40dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:ems="10"
+        android:text="@string/longitude_label"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@+id/altitude_label"
+        app:layout_constraintStart_toEndOf="@+id/latitude_label"
+        app:layout_constraintTop_toTopOf="@+id/radar" />
+
     <TextView
         android:id="@+id/latitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:text="@string/latitude"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textAppearance="@style/Base.TextAppearance.MaterialComponents.Button"
+        app:layout_constraintEnd_toEndOf="@+id/latitude_label"
+        app:layout_constraintStart_toStartOf="@+id/latitude_label"
+        app:layout_constraintTop_toBottomOf="@+id/latitude_label" />
 
     <TextView
         android:id="@+id/longitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:text="@string/longitude"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/latitude" />
+        android:textAppearance="@style/Base.TextAppearance.MaterialComponents.Button"
+        app:layout_constraintEnd_toEndOf="@+id/longitude_label"
+        app:layout_constraintStart_toStartOf="@+id/longitude_label"
+        app:layout_constraintTop_toBottomOf="@+id/longitude_label" />
 
     <TextView
         android:id="@+id/altitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:text="@string/altitude"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/longitude" />
+        android:textAppearance="@style/Base.TextAppearance.MaterialComponents.Button"
+        app:layout_constraintEnd_toEndOf="@+id/altitude_label"
+        app:layout_constraintStart_toStartOf="@+id/altitude_label"
+        app:layout_constraintTop_toBottomOf="@+id/altitude_label" />
 
     <run.drop.app.RadarView
-        android:id="@+id/radar" 
-        android:layout_width="wrap_content" 
-        android:layout_height="wrap_content" 
-        app:layout_constraintStart_toStartOf="parent" 
+        android:id="@+id/radar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
     
 </androidx.constraintlayout.widget.ConstraintLayout>

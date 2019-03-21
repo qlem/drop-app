@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="300dp"
-              android:layout_height="wrap_content"
-              android:orientation="vertical" >
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/drop_color_picker">
 
     <TextView
             android:id="@+id/titre"
@@ -18,7 +20,9 @@
             android:hint="@string/your_message"
             android:singleLine="true"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:inputType="" />
 
     <TextView
             android:id="@+id/textSize"
@@ -34,29 +38,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
+    <com.skydoves.colorpickerview.ColorPickerView
+        android:id="@+id/colorPickerView"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        app:palette="@drawable/palette"
+        app:selector="@drawable/wheel" />
 
-    <LinearLayout
-        android:layout_marginTop="10dp"
-        android:id="@+id/colorPicker"
+    <com.skydoves.colorpickerview.sliders.BrightnessSlideBar
+        android:id="@+id/brightnessSlide"
         android:layout_width="match_parent"
-        android:layout_height="25dp"
-        android:background="@color/textColor1"
-        android:orientation="horizontal">
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        app:selector_BrightnessSlider="@drawable/wheel"
+        app:borderColor_BrightnessSlider="@android:color/darker_gray"
+        app:borderSize_BrightnessSlider="5"/>
 
-    <Button
-            android:layout_marginTop="10dp"
-            android:id="@+id/colorPickerButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/color"
-    />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/dropSubmit"
+        android:layout_marginTop="10dp"
+        android:text="@string/drop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
 
-    <Button
-            android:id="@+id/dropSubmit"
-            android:layout_marginTop="10dp"
-            android:text="@string/drop"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-    />
 </LinearLayout>

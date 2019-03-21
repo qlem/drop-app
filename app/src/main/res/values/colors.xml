@@ -14,8 +14,8 @@
     <color name="colorOnError">#ffffff</color>
     <color name="colorOnSurface">#ffffff</color>
     <color name="colorStatusBar">#27272f</color>
+    <color name="toolbarColor">#A01EB980</color>
     <color name="colorTransparent">#00FFFFFF</color>
-
     <color name="textColor1">#861bd8</color>
     <color name="textColor2">#1bd857</color>
     <color name="textColor3">#d8601b</color>

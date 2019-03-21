@@ -4,33 +4,38 @@ import android.Manifest
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import com.apollographql.apollo.ApolloCall
-import com.apollographql.apollo.api.Response
-import com.apollographql.apollo.exception.ApolloException
 import android.content.pm.PackageManager
-import android.graphics.drawable.ColorDrawable
 import android.location.Location
+import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.MotionEvent
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import com.apollographql.apollo.ApolloCall
+import com.apollographql.apollo.api.Response
+import com.apollographql.apollo.exception.ApolloException
 import com.google.ar.core.*
 import com.google.ar.sceneform.ux.ArFragment
+import com.skydoves.colorpickerview.ColorPickerView
+import com.skydoves.colorpickerview.listeners.ColorListener
+import com.skydoves.colorpickerview.sliders.BrightnessSlideBar
 import run.drop.app.apollo.Apollo
-import run.drop.app.rendering.Message
-import run.drop.app.rendering.DropRenderer
-import run.drop.app.location.LocationHandler
 import run.drop.app.apollo.TokenHandler
+import run.drop.app.location.LocationHandler
 import run.drop.app.location.OnLocationUpdateListener
 import run.drop.app.rendering.Drop
+import run.drop.app.rendering.DropRenderer
+import run.drop.app.rendering.Message
 import run.drop.app.utils.colorHexStringToInt
 import run.drop.app.utils.colorIntToHexString
 import run.drop.app.utils.setStatusBarColor
-import kotlin.collections.ArrayList
+import java.text.DecimalFormat
+
 
 class DropActivity : AppCompatActivity() {
 
@@ -58,12 +63,13 @@ class DropActivity : AppCompatActivity() {
             locationHandler = LocationHandler(this)
             locationHandler?.setOnLocationUpdateListener(object : OnLocationUpdateListener {
                 override fun onLocationUpdateListener(location: Location) {
+                    val df = DecimalFormat("#.##")
                     val latitudeView: TextView = findViewById(R.id.latitude)
                     val longitudeView: TextView = findViewById(R.id.longitude)
                     val altitudeView: TextView = findViewById(R.id.altitude)
-                    latitudeView.text = location.latitude.toString()
-                    longitudeView.text = location.longitude.toString()
-                    altitudeView.text = location.altitude.toString()
+                    latitudeView.text = df.format(location.latitude).toString()
+                    longitudeView.text = df.format(location.longitude).toString()
+                    altitudeView.text = df.format(location.altitude).toString()
                 }
             })
         }
@@ -130,25 +136,17 @@ class DropActivity : AppCompatActivity() {
         val dropSubmit = dialog.findViewById<Button>(R.id.dropSubmit)
         // TODO save text size too
         // val textSize = dialog.findViewById<SeekBar>(R.id.seekBarSize)
-        val colorPicker = dialog.findViewById<LinearLayout>(R.id.colorPicker)
-        val colorPickerButton = dialog.findViewById<Button>(R.id.colorPickerButton)
+        val colorPickerView = dialog.findViewById<ColorPickerView>(R.id.colorPickerView)
 
-        colorPickerButton.setOnClickListener {
-            val color = colorPicker.background as ColorDrawable
-            when (color.color) {
-                ContextCompat.getColor(this, R.color.textColor1) -> colorPicker.setBackgroundResource(R.color.textColor2)
-                ContextCompat.getColor(this, R.color.textColor2) -> colorPicker.setBackgroundResource(R.color.textColor3)
-                ContextCompat.getColor(this, R.color.textColor3) -> colorPicker.setBackgroundResource(R.color.textColor4)
-                ContextCompat.getColor(this, R.color.textColor4) -> colorPicker.setBackgroundResource(R.color.textColor5)
-                ContextCompat.getColor(this, R.color.textColor5) -> colorPicker.setBackgroundResource(R.color.textColor1)
-            }
-        }
+        colorPickerView.setColorListener(ColorListener { _, _ -> })
+        val brightnessSlideBar = dialog.findViewById<BrightnessSlideBar>(R.id.brightnessSlide)
+        colorPickerView.attachBrightnessSlider(brightnessSlideBar)
 
         dropSubmit.setOnClickListener {
-            val color = colorPicker.background as ColorDrawable
+            val color = colorPickerView.color
             val location = LocationHandler.lastLocation
             if (location != null) {
-                saveDrop(dropTextInput.text.toString(), colorIntToHexString(color.color), location.latitude,
+                saveDrop(dropTextInput.text.toString(), colorIntToHexString(color), location.latitude,
                         location.longitude, location.altitude)
             }
             dialog.dismiss()

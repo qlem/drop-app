@@ -25,7 +25,9 @@
     <string name="your_message">Your message</string>
     <string name="color">Color</string>
     <string name="size">Size</string>
-
+    <string name="latitude_label">LAT</string>
+    <string name="longitude_label">LON</string>
+    <string name="altitude_label">ALT</string>
     <string name="like_button">Like</string>
     <string name="dislike_button">Dislike</string>
 </resources>
