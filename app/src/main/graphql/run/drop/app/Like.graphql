@@ -1,0 +1,8 @@
+mutation Like($id: ID!) {
+  like(id: $id) {
+    id
+    likeState
+    likeCount
+    dislikeCount
+  }
+}

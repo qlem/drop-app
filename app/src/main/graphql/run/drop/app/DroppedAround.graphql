@@ -8,5 +8,8 @@ query DroppedAround($latitude: Float!, $longitude: Float!, $radius: Float!) {
       longitude
       altitude
     }
+    likeState
+    likeCount
+    dislikeCount
   }
 }

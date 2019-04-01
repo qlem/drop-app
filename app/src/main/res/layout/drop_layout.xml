@@ -32,7 +32,6 @@
         android:layout_alignStart="@+id/like_button"
         android:layout_marginStart="1dp"
         android:layout_marginTop="0dp"
-        android:text="2000"
         android:textAlignment="center" />
 
     <ImageButton
@@ -56,6 +55,5 @@
         android:layout_marginStart="27dp"
         android:layout_marginTop="-1dp"
         android:layout_toEndOf="@+id/like_total"
-        android:text="300000"
         android:textAlignment="center" />
 </RelativeLayout>

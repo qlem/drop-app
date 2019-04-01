@@ -101,7 +101,8 @@ class DropActivity : AppCompatActivity() {
             for (drop in drops) {
                 if (!drop.isDisplayed) {
                     drop.isDisplayed = true
-                    DropRenderer(this, anchor, drop.message, arFragment!!, plane)
+                    DropRenderer(this, anchor, drop.message, arFragment!!, plane, drop.id, drop.likeState,
+                            drop.likeCount, drop.dislikeCount)
                     break
                 }
             }
@@ -176,7 +177,8 @@ class DropActivity : AppCompatActivity() {
                         if (!isPresent) {
                             val message = Message(item.text, 50f, colorHexStringToInt(item.color))
                             drops.add(Drop(message, item.id, false, item.location.latitude,
-                                    item.location.longitude, item.location.altitude))
+                                    item.location.longitude, item.location.altitude,
+                                    item.likeState.toString(), item.likeCount, item.dislikeCount))
                         }
                     }
                 }

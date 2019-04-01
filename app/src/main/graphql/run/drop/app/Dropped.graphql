@@ -8,5 +8,8 @@ query Dropped {
       longitude
       altitude
     }
+    likeState
+    likeCount
+    dislikeCount
   }
 }
