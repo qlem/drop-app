@@ -2,7 +2,9 @@
     <string name="app_name">Drop</string>
 
     <string name="drop_location_btn">GET LOCATION</string>
-    <string name="drop_quit_btn">QUIT</string>
+    <string name="drop_next_btn">NEXT</string>
+    <string name="logout_btn_desc">logout btn</string>
+    <string name="magic_btn_desc">magic btn</string>
 
     <string name="latitude">0</string>
     <string name="longitude">0</string>

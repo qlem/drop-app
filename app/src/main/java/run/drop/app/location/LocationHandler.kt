@@ -13,7 +13,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.common.api.ResolvableApiException
 
-class LocationHandler(context: Context) {
+class LocationHandler(context: Context, private val onLocationUpdateListener: OnLocationUpdateListener) {
 
     companion object {
         const val REQUEST_SETTINGS_CODE = 42
@@ -22,8 +22,6 @@ class LocationHandler(context: Context) {
 
     private var client: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(context)
-
-    private var onLocationUpdateListener: OnLocationUpdateListener? = null
 
     private var locationCallback = object : LocationCallback() {
 
@@ -35,7 +33,7 @@ class LocationHandler(context: Context) {
 
         override fun onLocationResult(result: LocationResult)  {
             lastLocation = result.lastLocation
-            onLocationUpdateListener?.onLocationUpdateListener(lastLocation as Location)
+            onLocationUpdateListener.onLocationUpdateListener(lastLocation as Location)
         }
     }
 
@@ -80,9 +78,5 @@ class LocationHandler(context: Context) {
 
     fun removeLocationUpdates() {
         client.removeLocationUpdates(locationCallback)
-    }
-
-    fun setOnLocationUpdateListener(listener: OnLocationUpdateListener) {
-        onLocationUpdateListener = listener
     }
 }

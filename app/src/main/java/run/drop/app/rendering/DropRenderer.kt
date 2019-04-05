@@ -17,13 +17,22 @@ import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 import run.drop.app.*
 import run.drop.app.apollo.Apollo
+import run.drop.app.dropObject.Drop
+import run.drop.app.dropObject.Social
 
 
-class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragment: ArFragment, plane: Plane, idDrop: String,
-                   likeState: String, likeCount: Int, dislikeCount: Int) {
+class DropRenderer(private val context: Context, arFragment: ArFragment, anchor: Anchor, plane: Plane, private val drop: Drop) {
+
+    private lateinit var likeButton: ImageButton
+    private lateinit var dislikeButton: ImageButton
+    private lateinit var likeCountView: TextView
+    private lateinit var dislikeCountView: TextView
+
     init {
         val anchorNode = AnchorNode(anchor)
         anchorNode.setParent(arFragment.arSceneView.scene)
+
+        drop.anchorNode = anchorNode
 
         val textNode = TransformableNode(arFragment.transformationSystem)
         val scaleController = textNode.scaleController
@@ -38,99 +47,112 @@ class DropRenderer(context: Context, anchor: Anchor, message: Message, arFragmen
             textNode.worldRotation = quaternion
         }
 
-        fun likeButtonSetListener(likeButton: ImageButton, dislikeButton: ImageButton, likeTotal: TextView, dislikeTotal: TextView) {
-            likeButton.setOnClickListener {
-                Apollo.client.mutate(LikeMutation.builder()
-                        .id(idDrop).build()).enqueue(object : ApolloCall.Callback<LikeMutation.Data>() {
-
-                    override fun onResponse(response: Response<LikeMutation.Data>) {
-                        likeTotal.text = response.data()?.like()?.likeCount().toString()
-                        dislikeTotal.text = response.data()?.like()?.dislikeCount().toString()
-                        if (response.data()?.like()?.likeState().equals("LIKED")) {
-                            (context as DropActivity).runOnUiThread {
-                                likeButton.setImageResource(R.drawable.like_filled)
-                                dislikeButton.setImageResource(R.drawable.dislike_transparent)
-                            }
-                        } else {
-                            likeButton.setImageResource(R.drawable.like_transparent)
-                        }
-                    }
-
-                    override fun onFailure(e: ApolloException) {
-                        Log.e("APOLLO", e.message)
-                        e.printStackTrace()
-                    }
-                })
-            }
-        }
-
-        fun dislikeButtonSetListener(likeButton: ImageButton, dislikeButton: ImageButton, likeTotal: TextView, dislikeTotal: TextView) {
-            dislikeButton.setOnClickListener {
-                Apollo.client.mutate(DislikeMutation.builder()
-                        .id(idDrop).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
-
-                    override fun onResponse(response: Response<DislikeMutation.Data>) {
-                        likeTotal.text = response.data()?.dislike()?.likeCount().toString()
-                        dislikeTotal.text = response.data()?.dislike()?.dislikeCount().toString()
-                        if (response.data()?.dislike()?.likeState().equals("DISLIKED")) {
-                            (context as DropActivity).runOnUiThread {
-                                dislikeButton.setImageResource(R.drawable.dislike_filled)
-                                likeButton.setImageResource(R.drawable.like_transparent)
-                            }
-                        } else {
-                            (context as DropActivity).runOnUiThread {
-                                dislikeButton.setImageResource(R.drawable.dislike_transparent)
-                            }
-                        }
-                    }
-
-                    override fun onFailure(e: ApolloException) {
-                        Log.e("APOLLO", e.message)
-                        e.printStackTrace()
-                    }
-                })
-            }
-        }
-
         ViewRenderable.builder()
         .setView(context, R.layout.drop_layout)
         .build()
         .thenAccept { model ->
             val dropMessage = model.view.findViewById<TextView>(R.id.drop_message)
-            val likeButton = model.view.findViewById<ImageButton>(R.id.like_button)
-            val dislikeButton = model.view.findViewById<ImageButton>(R.id.dislike_button)
-            val likeTotal = model.view.findViewById<TextView>(R.id.like_total)
-            val dislikeTotal = model.view.findViewById<TextView>(R.id.dislike_total)
+            likeButton = model.view.findViewById(R.id.like_button)
+            dislikeButton = model.view.findViewById(R.id.dislike_button)
+            likeCountView = model.view.findViewById(R.id.like_total)
+            dislikeCountView = model.view.findViewById(R.id.dislike_total)
 
-            dropMessage.text = message.text
-            dropMessage.setTextColor(message.color!!)
-            dropMessage.textSize = message.size!!
-            likeTotal.text = likeCount.toString()
-            dislikeTotal.text = dislikeCount.toString()
+            dropMessage.text = drop.message.text
+            dropMessage.setTextColor(drop.message.color)
+            dropMessage.textSize = drop.message.size
 
-            when (likeState) {
-                "LIKED" -> {
-                    likeButton.setImageResource(R.drawable.like_filled)
-                    dislikeButton.setImageResource(R.drawable.dislike_transparent)
-                }
-                "DISLIKED" -> {
-                    dislikeButton.setImageResource(R.drawable.dislike_filled)
-                    likeButton.setImageResource(R.drawable.like_transparent)
-                }
-                else -> {
-                    likeButton.setImageResource(R.drawable.like_transparent)
-                    dislikeButton.setImageResource(R.drawable.dislike_transparent)
-                }
-            }
-
-            likeButtonSetListener(likeButton, dislikeButton, likeTotal, dislikeTotal)
-            dislikeButtonSetListener(likeButton, dislikeButton, likeTotal, dislikeTotal)
+            setSocialView(drop.social.state, drop.social.likeCount, drop.social.dislikeCount)
+            likeButtonSetListener()
+            dislikeButtonSetListener()
 
             model.isShadowCaster = false
             model.isShadowReceiver = false
             textNode.setParent(anchorNode)
             textNode.renderable = model
             textNode.select()
+        }
+    }
+
+    private fun setSocialView(state: Social.State, likeCount: Int, dislikeCount: Int) {
+        when (state) {
+            Social.State.LIKED -> {
+                likeButton.setImageResource(R.drawable.like_filled)
+                dislikeButton.setImageResource(R.drawable.dislike_transparent)
+            }
+            Social.State.DISLIKED -> {
+                likeButton.setImageResource(R.drawable.like_transparent)
+                dislikeButton.setImageResource(R.drawable.dislike_filled)
+            }
+            else -> {
+                likeButton.setImageResource(R.drawable.like_transparent)
+                dislikeButton.setImageResource(R.drawable.dislike_transparent)
+            }
+        }
+        likeCountView.text = likeCount.toString()
+        dislikeCountView.text = dislikeCount.toString()
+    }
+
+    private fun updateSocialDrop(state: Social.State, likeCount: Int, dislikeCount: Int) {
+        when (state) {
+            Social.State.LIKED -> drop.social.state = Social.State.LIKED
+            Social.State.DISLIKED -> drop.social.state = Social.State.DISLIKED
+            else -> drop.social.state = Social.State.BLANK
+        }
+        drop.social.likeCount = likeCount
+        drop.social.dislikeCount = dislikeCount
+    }
+
+    private fun likeButtonSetListener() {
+        likeButton.setOnClickListener {
+            Apollo.client.mutate(LikeMutation.builder()
+                    .id(drop.id).build()).enqueue(object : ApolloCall.Callback<LikeMutation.Data>() {
+
+                override fun onResponse(response: Response<LikeMutation.Data>) {
+                    val state: Social.State = when (response.data()?.like()?.likeState()) {
+                        "LIKED" -> Social.State.LIKED
+                        "DISLIKED" -> Social.State.DISLIKED
+                        else -> Social.State.BLANK
+                    }
+                    val likeCount: Int = response.data()?.like()?.likeCount()!!
+                    val dislikeCount: Int = response.data()?.like()?.dislikeCount()!!
+                    updateSocialDrop(state, likeCount, dislikeCount)
+                    (context as DropActivity).runOnUiThread {
+                        setSocialView(state, likeCount, dislikeCount)
+                    }
+                }
+
+                override fun onFailure(e: ApolloException) {
+                    Log.e("APOLLO", e.message)
+                    e.printStackTrace()
+                }
+            })
+        }
+    }
+
+    private fun dislikeButtonSetListener() {
+        dislikeButton.setOnClickListener {
+            Apollo.client.mutate(DislikeMutation.builder()
+                    .id(drop.id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
+
+                override fun onResponse(response: Response<DislikeMutation.Data>) {
+                    val state: Social.State = when (response.data()?.dislike()?.likeState()) {
+                        "LIKED" -> Social.State.LIKED
+                        "DISLIKED" -> Social.State.DISLIKED
+                        else -> Social.State.BLANK
+                    }
+                    val likeCount: Int = response.data()?.dislike()?.likeCount()!!
+                    val dislikeCount: Int = response.data()?.dislike()?.dislikeCount()!!
+                    updateSocialDrop(state, likeCount, dislikeCount)
+                    (context as DropActivity).runOnUiThread {
+                        setSocialView(state, likeCount, dislikeCount)
+                    }
+                }
+
+                override fun onFailure(e: ApolloException) {
+                    Log.e("APOLLO", e.message)
+                    e.printStackTrace()
+                }
+            })
         }
     }
 }

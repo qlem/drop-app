@@ -10,10 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.MotionEvent
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.apollographql.apollo.ApolloCall
@@ -26,15 +23,18 @@ import com.skydoves.colorpickerview.listeners.ColorListener
 import com.skydoves.colorpickerview.sliders.BrightnessSlideBar
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
+import run.drop.app.dropObject.Drop
+import run.drop.app.dropObject.Message
+import run.drop.app.dropObject.Social
+import run.drop.app.dropObject.DLocation
 import run.drop.app.location.LocationHandler
 import run.drop.app.location.OnLocationUpdateListener
-import run.drop.app.rendering.Drop
 import run.drop.app.rendering.DropRenderer
-import run.drop.app.rendering.Message
 import run.drop.app.utils.colorHexStringToInt
 import run.drop.app.utils.colorIntToHexString
 import run.drop.app.utils.setStatusBarColor
 import java.text.DecimalFormat
+import kotlin.collections.ArrayList
 
 
 class DropActivity : AppCompatActivity() {
@@ -43,15 +43,15 @@ class DropActivity : AppCompatActivity() {
         var drops: MutableList<Drop> = ArrayList()
     }
 
-    private var locationHandler: LocationHandler? = null
-    private var arFragment: ArFragment? = null
+    private lateinit var locationHandler: LocationHandler
+    private lateinit var arFragment: ArFragment
 
     private val handler = Handler()
     private val runnable = object : Runnable {
         override fun run() {
             val currentLocation = LocationHandler.lastLocation
             if (currentLocation != null) {
-                updateDropList(currentLocation.latitude, currentLocation.longitude, 10.0)
+                refreshDropList(currentLocation.latitude, currentLocation.longitude, 10.0)
             }
             handler.postDelayed(this, 2000)
         }
@@ -60,8 +60,7 @@ class DropActivity : AppCompatActivity() {
     private fun initLocationHandler() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
-            locationHandler = LocationHandler(this)
-            locationHandler?.setOnLocationUpdateListener(object : OnLocationUpdateListener {
+            val locationListener: OnLocationUpdateListener = object : OnLocationUpdateListener {
                 override fun onLocationUpdateListener(location: Location) {
                     val df = DecimalFormat("#.##")
                     val latitudeView: TextView = findViewById(R.id.latitude)
@@ -71,19 +70,21 @@ class DropActivity : AppCompatActivity() {
                     longitudeView.text = df.format(location.longitude).toString()
                     altitudeView.text = df.format(location.altitude).toString()
                 }
-            })
+            }
+            locationHandler = LocationHandler(this, locationListener)
         }
     }
 
     private fun initArScene() {
-        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
-        arFragment?.setOnTapArPlaneListener { _: HitResult, _: Plane, _: MotionEvent ->
-            touchEvent()
+        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
+        arFragment.setOnTapArPlaneListener { _: HitResult, _: Plane, _: MotionEvent ->
+            saveDrop()
         }
-        arFragment!!.arSceneView.scene.addOnUpdateListener {
+        arFragment.arSceneView.scene.addOnUpdateListener {
             var plane: Plane? = null
             var anchor: Anchor? = null
-            val frame: Frame = arFragment!!.arSceneView.session!!.update()
+            val frame: Frame = arFragment.arSceneView.session!!.update()
+
             // TODO increase precision of hitTest
             val hitResults: MutableList<HitResult> = frame.hitTest(500f, 1000f)
             for (hitResult in hitResults) {
@@ -98,13 +99,9 @@ class DropActivity : AppCompatActivity() {
                 return@addOnUpdateListener
             }
 
-            for (drop in drops) {
-                if (!drop.isDisplayed) {
-                    drop.isDisplayed = true
-                    DropRenderer(this, anchor, drop.message, arFragment!!, plane, drop.id, drop.likeState,
-                            drop.likeCount, drop.dislikeCount)
-                    break
-                }
+            if (drops.isNotEmpty() && !drops[0].isDisplayed) {
+                drops[0].isDisplayed = true
+                DropRenderer(this, arFragment, anchor, plane, drops[0])
             }
         }
     }
@@ -120,16 +117,36 @@ class DropActivity : AppCompatActivity() {
         // init ar scene
         initArScene()
 
-        // init button for disconnect
-        val quitButton: Button = findViewById(R.id.quit_btn)
+        // init logout button
+        val quitButton: ImageButton = findViewById(R.id.logout_btn)
         quitButton.setOnClickListener {
             TokenHandler.clearToken(this)
             startActivity(Intent(this, AuthActivity::class.java))
             finish()
         }
+
+        // init magic button
+        val magicButton: ImageButton = findViewById(R.id.refresh_btn)
+        magicButton.setOnClickListener {
+            if (drops.isNotEmpty() && drops[0].isDisplayed) {
+                drops[0].anchorNode?.anchor?.detach()
+            }
+            drops.clear()
+        }
+
+        // init next button
+        val nextButton: Button = findViewById(R.id.next_btn)
+        nextButton.setOnClickListener {
+            if (drops.isNotEmpty() && drops[0].isDisplayed) {
+                drops[0].anchorNode?.anchor?.detach()
+                val tmp: Drop = drops.removeAt(0)
+                tmp.isDisplayed = false
+                drops.add(tmp)
+            }
+        }
     }
 
-    private fun touchEvent() {
+    private fun saveDrop() {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.drop_dialog)
 
@@ -147,7 +164,7 @@ class DropActivity : AppCompatActivity() {
             val color = colorPickerView.color
             val location = LocationHandler.lastLocation
             if (location != null) {
-                saveDrop(dropTextInput.text.toString(), colorIntToHexString(color), location.latitude,
+                saveDropQuery(dropTextInput.text.toString(), colorIntToHexString(color), location.latitude,
                         location.longitude, location.altitude)
             }
             dialog.dismiss()
@@ -155,7 +172,19 @@ class DropActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun updateDropList(latitude: Double, longitude: Double, radius: Double) {
+    private fun setDrop(item: DroppedAroundQuery.DroppedAround, isDisplayed: Boolean): Drop {
+        val location = DLocation(item.location.latitude, item.location.longitude, item.location.altitude)
+        val message = Message(item.text, 40f, colorHexStringToInt(item.color))
+        val socialState = when (item.likeState) {
+            "LIKED" -> Social.State.LIKED
+            "DISLIKED" -> Social.State.DISLIKED
+            else -> Social.State.BLANK
+        }
+        val social = Social(socialState, item.likeCount, item.dislikeCount)
+        return Drop(item.id, message, location, social, isDisplayed)
+    }
+
+    private fun refreshDropList(latitude: Double, longitude: Double, radius: Double) {
         Apollo.client.query(
                 DroppedAroundQuery.builder()
                         .latitude(latitude)
@@ -165,21 +194,41 @@ class DropActivity : AppCompatActivity() {
 
             override fun onResponse(response: Response<DroppedAroundQuery.Data>) {
                 val data = response.data()!!.droppedAround
-                // TODO optimize here
-                if (!data.isEmpty()) {
-                    data.forEach { item ->
-                        var isPresent = false
-                        drops.forEach { drop ->
-                            if (drop.id == item.id) {
-                                isPresent = true
-                            }
-                        }
-                        if (!isPresent) {
-                            val message = Message(item.text, 50f, colorHexStringToInt(item.color))
-                            drops.add(Drop(message, item.id, false, item.location.latitude,
-                                    item.location.longitude, item.location.altitude,
-                                    item.likeState.toString(), item.likeCount, item.dislikeCount))
-                        }
+
+                /**
+                 * Retrieves and updates the current displayed drop if it stays in the area.
+                 */
+                var current: Drop? = null
+                if (drops.isNotEmpty() && drops[0].isDisplayed) {
+                    val matched = data.find { item -> item.id == drops[0].id }
+                    if (matched != null) {
+                        current = setDrop(matched, true)
+                        current.anchorNode = drops[0].anchorNode
+                    }
+                }
+
+                /**
+                 * Removes the displayed drop from the AR scene if it is outside the area.
+                 */
+                if (current == null && drops.isNotEmpty() && drops[0].isDisplayed) {
+                    drops[0].anchorNode?.anchor?.detach()
+                }
+
+                /**
+                 * Clears the drops list then adds the updated displayed drop if exists.
+                 */
+                drops.clear()
+                if (current != null) {
+                    drops.add(current)
+                }
+
+                /**
+                 * Adds the other drops from the server into the drops list.
+                 */
+                data.forEach { item ->
+                    if (current == null || item.id != current.id) {
+                        val drop = setDrop(item, false)
+                        drops.add(drop)
                     }
                 }
             }
@@ -192,7 +241,7 @@ class DropActivity : AppCompatActivity() {
         })
     }
 
-    private fun saveDrop(text: String, color: String, latitude: Double, longitude: Double, altitude: Double) {
+    private fun saveDropQuery(text: String, color: String, latitude: Double, longitude: Double, altitude: Double) {
         Apollo.client.mutate(CreateDropMutation.Builder()
                 .text(text)
                 .color(color)
@@ -267,6 +316,6 @@ class DropActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         handler.removeCallbacks(runnable)
-        locationHandler?.removeLocationUpdates()
+        locationHandler.removeLocationUpdates()
     }
 }

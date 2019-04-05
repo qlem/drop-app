@@ -83,10 +83,10 @@ class RadarView : View {
         location = LocationHandler.lastLocation
         if (location != null) {
             for (drop in DropActivity.drops) {
-                val y = Math.sin(drop.longitude - location!!.longitude) * Math.cos(drop.latitude)
-                val x = Math.cos(location!!.latitude) * Math.sin(drop.latitude) -
-                        Math.sin(location!!.latitude) * Math.cos(drop.latitude) *
-                        Math.cos(drop.longitude - location!!.longitude)
+                val y = Math.sin(drop.dLocation.longitude - location!!.longitude) * Math.cos(drop.dLocation.latitude)
+                val x = Math.cos(location!!.latitude) * Math.sin(drop.dLocation.latitude) -
+                        Math.sin(location!!.latitude) * Math.cos(drop.dLocation.latitude) *
+                        Math.cos(drop.dLocation.longitude - location!!.longitude)
 
                 val brng = Math.toDegrees(Math.atan2(y, x)).toInt()
                 addPoint(brng.toFloat(), width.toDouble(), height.toDouble())
