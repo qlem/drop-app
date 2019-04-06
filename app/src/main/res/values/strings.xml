@@ -4,6 +4,7 @@
     <string name="drop_next_btn">NEXT</string>
     <string name="logout_btn_desc">logout btn</string>
     <string name="magic_btn_desc">magic btn</string>
+    <string name="plane_btn_desc">plane btn</string>
 
     <string name="latitude">0</string>
     <string name="longitude">0</string>

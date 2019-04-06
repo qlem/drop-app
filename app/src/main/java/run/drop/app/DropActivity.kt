@@ -46,6 +46,8 @@ class DropActivity : AppCompatActivity() {
     private lateinit var locationHandler: LocationHandler
     private lateinit var arFragment: ArFragment
 
+    private var planeDetection = true
+
     private val handler = Handler()
     private val runnable = object : Runnable {
         override fun run() {
@@ -134,6 +136,22 @@ class DropActivity : AppCompatActivity() {
                 drops[0].anchorNode?.anchor?.detach()
             }
             drops.clear()
+        }
+
+        // init plane button
+        val planeButton: ImageButton = findViewById(R.id.plane_btn)
+        planeButton.setOnClickListener {
+            planeDetection = !planeDetection
+            val session = arFragment.arSceneView.session!!
+            session.pause()
+            val config = session.config
+            config.planeFindingMode =
+                    if (planeDetection)
+                        Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+                    else
+                        Config.PlaneFindingMode.DISABLED
+            session.configure(config)
+            session.resume()
         }
 
         // init next button
