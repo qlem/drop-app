@@ -85,12 +85,14 @@ class DropActivity : AppCompatActivity() {
             var anchor: Anchor? = null
             val frame: Frame = arFragment.arSceneView.session!!.update()
 
-            // TODO increase precision of hitTest
-            val hitResults: MutableList<HitResult> = frame.hitTest(500f, 1000f)
+            // TODO increase hit test precision
+            val cameraWidth: Float = frame.camera.textureIntrinsics.imageDimensions[0].toFloat()
+            val cameraHeight: Float = frame.camera.textureIntrinsics.imageDimensions[1].toFloat()
+            val hitResults: MutableList<HitResult> = frame.hitTest(cameraHeight / 2, cameraWidth / 2)
             for (hitResult in hitResults) {
                 if (hitResult.trackable is Plane) {
                     plane = hitResult.trackable as Plane
-                    anchor = hitResults.first().createAnchor()
+                    anchor = hitResult.createAnchor()
                     break
                 }
             }
@@ -174,7 +176,7 @@ class DropActivity : AppCompatActivity() {
 
     private fun setDrop(item: DroppedAroundQuery.DroppedAround, isDisplayed: Boolean): Drop {
         val location = DLocation(item.location.latitude, item.location.longitude, item.location.altitude)
-        val message = Message(item.text, 40f, colorHexStringToInt(item.color))
+        val message = Message(item.text, 30f, colorHexStringToInt(item.color))
         val socialState = when (item.likeState) {
             "LIKED" -> Social.State.LIKED
             "DISLIKED" -> Social.State.DISLIKED
