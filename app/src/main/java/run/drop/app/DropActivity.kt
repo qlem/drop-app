@@ -8,7 +8,10 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import android.view.Gravity
 import android.view.MotionEvent
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -18,9 +21,6 @@ import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import com.google.ar.core.*
 import com.google.ar.sceneform.ux.ArFragment
-import com.skydoves.colorpickerview.ColorPickerView
-import com.skydoves.colorpickerview.listeners.ColorListener
-import com.skydoves.colorpickerview.sliders.BrightnessSlideBar
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
 import run.drop.app.dropObject.Drop
@@ -35,7 +35,12 @@ import run.drop.app.utils.colorIntToHexString
 import run.drop.app.utils.setStatusBarColor
 import java.text.DecimalFormat
 import kotlin.collections.ArrayList
-
+import com.thebluealliance.spectrum.SpectrumPalette
+import android.widget.Toast
+import androidx.annotation.ColorInt
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import com.google.android.material.snackbar.Snackbar
+import run.drop.app.rendering.Toaster
 
 class DropActivity : AppCompatActivity() {
 
@@ -47,6 +52,7 @@ class DropActivity : AppCompatActivity() {
     private lateinit var arFragment: ArFragment
 
     private var planeDetection = true
+    private lateinit var toaster: Toaster
 
     private val handler = Handler()
     private val runnable = object : Runnable {
@@ -64,7 +70,7 @@ class DropActivity : AppCompatActivity() {
                 PackageManager.PERMISSION_GRANTED) {
             val locationListener: OnLocationUpdateListener = object : OnLocationUpdateListener {
                 override fun onLocationUpdateListener(location: Location) {
-                    val df = DecimalFormat("#.##")
+                    val df = DecimalFormat("#.###")
                     val latitudeView: TextView = findViewById(R.id.latitude)
                     val longitudeView: TextView = findViewById(R.id.longitude)
                     val altitudeView: TextView = findViewById(R.id.altitude)
@@ -76,6 +82,8 @@ class DropActivity : AppCompatActivity() {
             locationHandler = LocationHandler(this, locationListener)
         }
     }
+
+
 
     private fun initArScene() {
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
@@ -108,12 +116,15 @@ class DropActivity : AppCompatActivity() {
                 DropRenderer(this, arFragment, anchor, plane, drops[0])
             }
         }
+        toaster.show("Loaded AR scene")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drop)
         setStatusBarColor(window, this)
+
+        toaster = Toaster(findViewById(R.id.root_layout))
 
         // init location handler
         initLocationHandler()
@@ -136,6 +147,7 @@ class DropActivity : AppCompatActivity() {
                 drops[0].anchorNode?.anchor?.detach()
             }
             drops.clear()
+            toaster.show("Cleaned all drops")
         }
 
         // init plane button
@@ -152,6 +164,7 @@ class DropActivity : AppCompatActivity() {
                         Config.PlaneFindingMode.DISABLED
             session.configure(config)
             session.resume()
+            toaster.show(("Plane detection turned " + if (planeDetection) "ON" else "OFF"))
         }
 
         // init next button
@@ -167,21 +180,30 @@ class DropActivity : AppCompatActivity() {
     }
 
     private fun saveDrop() {
-        val dialog = Dialog(this)
+        val dialog = DropDialog(this)
         dialog.setContentView(R.layout.drop_dialog)
 
         val dropTextInput = dialog.findViewById<EditText>(R.id.dropTextInput)
+
         val dropSubmit = dialog.findViewById<Button>(R.id.dropSubmit)
+
+        dropTextInput.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                dialog.validateForm()
+            }
+        })
+
         // TODO save text size too
         // val textSize = dialog.findViewById<SeekBar>(R.id.seekBarSize)
-        val colorPickerView = dialog.findViewById<ColorPickerView>(R.id.colorPickerView)
 
-        colorPickerView.setColorListener(ColorListener { _, _ -> })
-        val brightnessSlideBar = dialog.findViewById<BrightnessSlideBar>(R.id.brightnessSlide)
-        colorPickerView.attachBrightnessSlider(brightnessSlideBar)
+        val colorPalette = dialog.findViewById(R.id.palette) as SpectrumPalette
+
+        colorPalette.setOnColorSelectedListener(dialog)
 
         dropSubmit.setOnClickListener {
-            val color = colorPickerView.color
+            val color = dialog.color
             val location = LocationHandler.lastLocation
             if (location != null) {
                 saveDropQuery(dropTextInput.text.toString(), colorIntToHexString(color), location.latitude,
@@ -272,6 +294,7 @@ class DropActivity : AppCompatActivity() {
 
             override fun onResponse(response: Response<CreateDropMutation.Data>) {
                 Log.i("APOLLO", response.data()!!.createDrop.id)
+                toaster.show("Dropped")
             }
 
             override fun onFailure(e: ApolloException) {

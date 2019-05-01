@@ -1,64 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drop_color_picker"
     android:layout_width="300dp"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:id="@+id/drop_color_picker">
+    android:orientation="vertical">
 
     <TextView
-            android:id="@+id/titre"
-            android:layout_margin="5dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/drop"
-    />
+        android:id="@+id/titre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:text="@string/drop" />
 
     <EditText
-            android:id="@+id/dropTextInput"
-            android:layout_margin="5dp"
-            android:hint="@string/your_message"
-            android:singleLine="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:autofillHints=""
-            android:inputType="" />
-
-    <TextView
-            android:id="@+id/textSize"
-            android:layout_margin="5dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/size"
-    />
-    <SeekBar
-            android:id="@+id/seekBarSize"
-            android:max="100"
-            android:progress="50"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-    <com.skydoves.colorpickerview.ColorPickerView
-        android:id="@+id/colorPickerView"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        app:palette="@drawable/palette"
-        app:selector="@drawable/wheel" />
-
-    <com.skydoves.colorpickerview.sliders.BrightnessSlideBar
-        android:id="@+id/brightnessSlide"
+        android:id="@+id/dropTextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:selector_BrightnessSlider="@drawable/wheel"
-        app:borderColor_BrightnessSlider="@android:color/darker_gray"
-        app:borderSize_BrightnessSlider="5"/>
+        android:layout_margin="5dp"
+        android:layout_marginTop="25dp"
+        android:autofillHints=""
+        android:hint="@string/your_message"
+        android:inputType="textMultiLine"
+        android:maxLines="3"
+        android:minLines="3"
+        android:singleLine="true" />
 
-    <com.google.android.material.button.MaterialButton
+    <com.thebluealliance.spectrum.SpectrumPalette
+        android:id="@+id/palette"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:spectrum_autoPadding="true"
+        app:spectrum_colors="@array/rainbow"
+        app:spectrum_outlineWidth="2dp" />
+
+
+    <Button
         android:id="@+id/dropSubmit"
-        android:layout_marginTop="10dp"
-        android:text="@string/drop"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        />
+        android:layout_height="match_parent"
+        android:layout_margin="25dp"
+        android:enabled="false"
+        android:text="@string/drop" />
 
 </LinearLayout>
