@@ -6,6 +6,7 @@ import android.content.IntentSender
 import android.location.Location
 import android.util.Log
 import android.widget.Toast
+import android.hardware.GeomagneticField
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationRequest
@@ -18,6 +19,7 @@ class LocationHandler(context: Context, private val onLocationUpdateListener: On
     companion object {
         const val REQUEST_SETTINGS_CODE = 42
         var lastLocation: Location? = null
+        var geoField: GeomagneticField? = null
     }
 
     private var client: FusedLocationProviderClient =
@@ -34,6 +36,12 @@ class LocationHandler(context: Context, private val onLocationUpdateListener: On
         override fun onLocationResult(result: LocationResult)  {
             lastLocation = result.lastLocation
             onLocationUpdateListener.onLocationUpdateListener(lastLocation as Location)
+            geoField = GeomagneticField(
+                    java.lang.Double.valueOf(lastLocation?.latitude as Double).toFloat(),
+                    java.lang.Double.valueOf(lastLocation?.longitude as Double).toFloat(),
+                    java.lang.Double.valueOf(lastLocation?.altitude as Double).toFloat(),
+                    System.currentTimeMillis()
+            )
         }
     }
 

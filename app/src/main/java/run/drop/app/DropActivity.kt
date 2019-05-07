@@ -41,6 +41,11 @@ import androidx.annotation.ColorInt
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.google.android.material.snackbar.Snackbar
 import run.drop.app.rendering.Toaster
+import android.hardware.SensorManager
+import android.content.Context
+import android.hardware.Sensor
+import run.drop.app.sensor.SensorListener
+
 
 class DropActivity : AppCompatActivity() {
 
@@ -48,7 +53,12 @@ class DropActivity : AppCompatActivity() {
         var drops: MutableList<Drop> = ArrayList()
     }
 
+    private val sensorListener = SensorListener()
+
     private lateinit var locationHandler: LocationHandler
+    private lateinit var sensorManager: SensorManager
+    private lateinit var accelerometer: Sensor
+    private lateinit var magnetic: Sensor
     private lateinit var arFragment: ArFragment
 
     private var planeDetection = true
@@ -63,6 +73,12 @@ class DropActivity : AppCompatActivity() {
             }
             handler.postDelayed(this, 2000)
         }
+    }
+
+    private fun initSensors() {
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        magnetic = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
     }
 
     private fun initLocationHandler() {
@@ -128,6 +144,9 @@ class DropActivity : AppCompatActivity() {
 
         // init location handler
         initLocationHandler()
+
+        // init sensors
+        initSensors()
 
         // init ar scene
         initArScene()
@@ -354,6 +373,13 @@ class DropActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         checkAuthentication()
+        sensorManager.registerListener(sensorListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+        sensorManager.registerListener(sensorListener, magnetic, SensorManager.SENSOR_DELAY_NORMAL)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(sensorListener)
     }
 
     override fun onStop() {
