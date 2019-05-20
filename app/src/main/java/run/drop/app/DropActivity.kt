@@ -36,10 +36,6 @@ import run.drop.app.utils.setStatusBarColor
 import java.text.DecimalFormat
 import kotlin.collections.ArrayList
 import com.thebluealliance.spectrum.SpectrumPalette
-import android.widget.Toast
-import androidx.annotation.ColorInt
-import androidx.coordinatorlayout.widget.CoordinatorLayout
-import com.google.android.material.snackbar.Snackbar
 import run.drop.app.rendering.Toaster
 import android.hardware.SensorManager
 import android.content.Context
@@ -177,10 +173,14 @@ class DropActivity : AppCompatActivity() {
             session.pause()
             val config = session.config
             config.planeFindingMode =
-                    if (planeDetection)
+                    if (planeDetection) {
+                        planeButton.background.alpha = 255
                         Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-                    else
+                    }
+                    else {
+                        planeButton.background.alpha = 100
                         Config.PlaneFindingMode.DISABLED
+                    }
             session.configure(config)
             session.resume()
             toaster.show(("Plane detection turned " + if (planeDetection) "ON" else "OFF"))
@@ -313,7 +313,7 @@ class DropActivity : AppCompatActivity() {
 
             override fun onResponse(response: Response<CreateDropMutation.Data>) {
                 Log.i("APOLLO", response.data()!!.createDrop.id)
-                toaster.show("Dropped")
+                toaster.show("Added new drop")
             }
 
             override fun onFailure(e: ApolloException) {
@@ -346,7 +346,7 @@ class DropActivity : AppCompatActivity() {
                 PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
                 PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Drop needs camera and location access", Toast.LENGTH_SHORT).show()
+            toaster.show("Drop needs camera and location access")
             finish()
         }
         initLocationHandler()
@@ -358,7 +358,7 @@ class DropActivity : AppCompatActivity() {
             LocationHandler.REQUEST_SETTINGS_CODE -> when (resultCode) {
                 Activity.RESULT_OK -> initLocationHandler()
                 Activity.RESULT_CANCELED -> {
-                    Toast.makeText(this, "Drop needs device location enabled", Toast.LENGTH_SHORT).show()
+                    toaster.show("Drop needs device location enabled")
                     finish()
                 }
             }
