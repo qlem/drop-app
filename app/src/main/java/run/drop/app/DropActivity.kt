@@ -2,7 +2,6 @@ package run.drop.app
 
 import android.Manifest
 import android.app.Activity
-import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -11,7 +10,6 @@ import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.Gravity
 import android.view.MotionEvent
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
