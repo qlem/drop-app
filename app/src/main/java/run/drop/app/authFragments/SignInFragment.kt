@@ -1,5 +1,6 @@
 package run.drop.app.authFragments
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +13,9 @@ import androidx.fragment.app.Fragment
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import io.sentry.Sentry
+import io.sentry.event.BreadcrumbBuilder
+import io.sentry.event.UserBuilder
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
 import run.drop.app.DropActivity
@@ -48,6 +52,10 @@ class SignInFragment : Fragment() {
     }
 
     private fun logIn(email : EditText, password : EditText) {
+        val sharedPreferences = this.context?.getSharedPreferences("Drop", Context.MODE_PRIVATE)
+
+        sharedPreferences?.edit()?.putString("email", email.text.toString())?.apply()
+
         Apollo.client.mutate(
                 LoginMutation.builder()
                         .email(email.text.toString())
@@ -71,6 +79,16 @@ class SignInFragment : Fragment() {
 
             override fun onFailure(e: ApolloException) {
                 Log.e("APOLLO", e.message)
+                Sentry.getContext().recordBreadcrumb(
+                        BreadcrumbBuilder().setMessage("Failed to Login Apollo").build()
+                )
+
+                Sentry.getContext().user = UserBuilder().setEmail(email.text.toString()).build()
+
+                Sentry.getContext().addExtra("exception", e)
+
+                Sentry.capture(e)
+                Sentry.getContext().clear()
                 e.printStackTrace()
             }
         })

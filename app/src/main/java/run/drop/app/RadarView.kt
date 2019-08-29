@@ -17,6 +17,9 @@ import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import run.drop.app.apollo.Apollo
 import android.util.Log
+import io.sentry.Sentry
+import io.sentry.event.BreadcrumbBuilder
+import io.sentry.event.UserBuilder
 
 
 class RadarView : View {
@@ -131,6 +134,17 @@ class RadarView : View {
 
             override fun onFailure(e: ApolloException) {
                 Log.e("APOLLO", e.message)
+
+                Sentry.getContext().recordBreadcrumb(
+                        BreadcrumbBuilder().setMessage("Failed to Update Drops APOLLO").build()
+                )
+
+                val email = context.getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+                Sentry.getContext().user = UserBuilder().setEmail(email).build()
+
+                Sentry.capture(e)
+                Sentry.getContext().clear()
+
                 e.printStackTrace()
             }
         })

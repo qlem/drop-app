@@ -15,6 +15,9 @@ import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import io.sentry.Sentry
+import io.sentry.event.BreadcrumbBuilder
+import io.sentry.event.UserBuilder
 import run.drop.app.*
 import run.drop.app.apollo.Apollo
 import run.drop.app.dropObject.Drop
@@ -123,6 +126,18 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
 
                 override fun onFailure(e: ApolloException) {
                     Log.e("APOLLO", e.message)
+
+                    Sentry.getContext().recordBreadcrumb(
+                            BreadcrumbBuilder().setMessage("Like Button failed Apollo").build()
+                    )
+
+                    val email = context.getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+                    Sentry.getContext().user = UserBuilder().setEmail(email).build()
+
+                    Sentry.capture(e)
+                    Sentry.getContext().clear()
+
+
                     e.printStackTrace()
                 }
             })
@@ -150,6 +165,16 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
 
                 override fun onFailure(e: ApolloException) {
                     Log.e("APOLLO", e.message)
+                    Sentry.getContext().recordBreadcrumb(
+                            BreadcrumbBuilder().setMessage("Dislike Button failed Apollo").build()
+                    )
+
+                    val email = context.getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+                    Sentry.getContext().user = UserBuilder().setEmail(email).build()
+
+                    Sentry.capture(e)
+                    Sentry.getContext().clear()
+
                     e.printStackTrace()
                 }
             })

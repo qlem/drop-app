@@ -1,5 +1,6 @@
 package run.drop.app.rendering
 
+import android.graphics.Color
 import android.view.Gravity
 import android.view.View
 import androidx.annotation.ColorInt
@@ -11,6 +12,12 @@ class Toaster(layout: View) {
     fun show(message: CharSequence) {
         snackBar.setText(message)
                 .withColor(0xFF1EB980.toInt())
+                .show()
+    }
+
+    fun error(message: CharSequence) {
+        snackBar.setText(message)
+                .withColor(Color.RED)
                 .show()
     }
 

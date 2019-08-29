@@ -29,6 +29,10 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    lintOptions {
+        lintConfig file("lint.xml")
+    }
 }
 
 repositories {
@@ -59,4 +63,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     implementation 'com.thebluealliance:spectrum:0.7.1'
     implementation("com.squareup.okhttp3:okhttp:3.14.1")
+    implementation 'io.sentry:sentry-android:1.7.16'
+    implementation 'org.slf4j:slf4j-nop:1.7.25'
 }

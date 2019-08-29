@@ -38,7 +38,12 @@ import run.drop.app.rendering.Toaster
 import android.hardware.SensorManager
 import android.content.Context
 import android.hardware.Sensor
+import io.sentry.Sentry
 import run.drop.app.sensor.SensorListener
+
+import io.sentry.context.Context as ctx
+import io.sentry.event.BreadcrumbBuilder
+import io.sentry.event.UserBuilder
 
 
 class DropActivity : AppCompatActivity() {
@@ -133,6 +138,17 @@ class DropActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drop)
         setStatusBarColor(window, this)
+
+
+        Sentry.getContext().recordBreadcrumb(
+                BreadcrumbBuilder().setMessage("Launching Drop Activity").build()
+        )
+
+        val email = getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+        Sentry.getContext().user = UserBuilder().setEmail(email).build()
+
+        Sentry.capture("User Report")
+        Sentry.getContext().clear()
 
         toaster = Toaster(findViewById(R.id.root_layout))
 
@@ -294,6 +310,17 @@ class DropActivity : AppCompatActivity() {
 
             override fun onFailure(e: ApolloException) {
                 Log.e("APOLLO", e.message)
+
+                Sentry.getContext().recordBreadcrumb(
+                        BreadcrumbBuilder().setMessage("Failed to Update Drops List APOLLO").build()
+                )
+
+                val email = getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+                Sentry.getContext().user = UserBuilder().setEmail(email).build()
+
+                Sentry.capture(e)
+                Sentry.getContext().clear()
+
                 e.printStackTrace()
             }
 
@@ -316,6 +343,17 @@ class DropActivity : AppCompatActivity() {
 
             override fun onFailure(e: ApolloException) {
                 Log.e("APOLLO", e.message)
+
+                Sentry.getContext().recordBreadcrumb(
+                        BreadcrumbBuilder().setMessage("Failed to save drop APOLLO").build()
+                )
+
+                val email = getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+                Sentry.getContext().user = UserBuilder().setEmail(email).build()
+
+                Sentry.capture(e)
+                Sentry.getContext().clear()
+
                 e.printStackTrace()
             }
         })
@@ -334,6 +372,17 @@ class DropActivity : AppCompatActivity() {
 
             override fun onFailure(e: ApolloException) {
                 Log.e("APOLLO", e.message)
+
+                Sentry.getContext().recordBreadcrumb(
+                        BreadcrumbBuilder().setMessage("Failed to check Authentication APOLLO").build()
+                )
+
+                val email = getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+                Sentry.getContext().user = UserBuilder().setEmail(email).build()
+
+                Sentry.capture(e)
+                Sentry.getContext().clear()
+
                 e.printStackTrace()
             }
         })

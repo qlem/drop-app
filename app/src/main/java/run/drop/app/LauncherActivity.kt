@@ -1,5 +1,6 @@
 package run.drop.app
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +11,11 @@ import com.apollographql.apollo.exception.ApolloException
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
 import run.drop.app.utils.setStatusBarColor
+import io.sentry.Sentry
+import io.sentry.android.AndroidSentryClientFactory
+import io.sentry.event.BreadcrumbBuilder
+import io.sentry.event.UserBuilder
+
 
 class LauncherActivity : AppCompatActivity() {
 
@@ -20,6 +26,12 @@ class LauncherActivity : AppCompatActivity() {
 
         TokenHandler.init(this)
         checkAuthentication()
+
+
+        val ctx = this.applicationContext
+        val sentryDsn = "https://e7375363417e4426a77e53d872ecd282@sentry.io/1482813"
+        Sentry.init(sentryDsn, AndroidSentryClientFactory(ctx))
+
 
         // TODO remove here for release
         // startActivity(Intent(this, DropActivity::class.java))
@@ -40,6 +52,19 @@ class LauncherActivity : AppCompatActivity() {
 
             override fun onFailure(e: ApolloException) {
                 Log.e("APOLLO", e.message)
+
+                Sentry.getContext().recordBreadcrumb(
+                        BreadcrumbBuilder().setMessage("Failed to Check identification APOLLO").build()
+                )
+
+
+                val email = getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+                Sentry.getContext().user = UserBuilder().setEmail(email).build()
+
+                Sentry.capture(e)
+                Sentry.getContext().clear()
+
+
                 e.printStackTrace()
             }
         })

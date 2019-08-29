@@ -11,6 +11,9 @@ import androidx.fragment.app.Fragment
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import io.sentry.Sentry
+import io.sentry.event.BreadcrumbBuilder
+import io.sentry.event.UserBuilder
 import run.drop.app.R
 import run.drop.app.SignupMutation
 import run.drop.app.apollo.Apollo
@@ -66,6 +69,18 @@ class SignUpFragment : Fragment() {
 
             override fun onFailure(e: ApolloException) {
                 Log.e("APOLLO", e.message)
+
+                Sentry.getContext().recordBreadcrumb(
+                        BreadcrumbBuilder().setMessage("Failed to Register Apollo").build()
+                )
+
+                Sentry.getContext().user = UserBuilder()
+                        .setEmail(email.text.toString())
+                        .setUsername(username.text.toString())
+                        .build()
+
+                Sentry.capture(e)
+                Sentry.getContext().clear()
                 e.printStackTrace()
             }
         })
