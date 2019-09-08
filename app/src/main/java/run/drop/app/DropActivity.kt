@@ -337,8 +337,13 @@ class DropActivity : AppCompatActivity() {
                 .build()).enqueue(object : ApolloCall.Callback<CreateDropMutation.Data>() {
 
             override fun onResponse(response: Response<CreateDropMutation.Data>) {
-                Log.i("APOLLO", response.data()!!.createDrop.id)
-                toaster.show("Added new drop")
+                if (response.hasErrors()) {
+                    Log.i("APOLLO", response.errors().toString())
+                    response.errors()[0].message()?.let { toaster.error(it) }
+                } else {
+                    Log.i("APOLLO", response.data()!!.createDrop.id)
+                    toaster.show("Added new drop")
+                }
             }
 
             override fun onFailure(e: ApolloException) {
