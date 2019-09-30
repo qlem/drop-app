@@ -21,6 +21,7 @@ import run.drop.app.apollo.TokenHandler
 import run.drop.app.DropActivity
 import run.drop.app.LoginMutation
 import run.drop.app.R
+import run.drop.app.apollo.IsAuth
 
 class SignInFragment : Fragment() {
 
@@ -66,6 +67,7 @@ class SignInFragment : Fragment() {
                 when {
                     dataResponse.data()?.login()?.token() != null -> {
                         TokenHandler.setToken(dataResponse.data()?.login()?.token().toString(), context!!)
+                        IsAuth.setSate(true)
                         startActivity(Intent(context, DropActivity::class.java))
                     }
                     dataResponse.errors()[0].message() == "Invalid email" -> activity?.runOnUiThread {

@@ -1,6 +1,8 @@
 package run.drop.app.rendering
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.TextView
@@ -20,6 +22,7 @@ import io.sentry.event.BreadcrumbBuilder
 import io.sentry.event.UserBuilder
 import run.drop.app.*
 import run.drop.app.apollo.Apollo
+import run.drop.app.apollo.IsAuth
 import run.drop.app.dropObject.Drop
 import run.drop.app.dropObject.Social
 
@@ -111,16 +114,22 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
                     .id(drop.id).build()).enqueue(object : ApolloCall.Callback<LikeMutation.Data>() {
 
                 override fun onResponse(response: Response<LikeMutation.Data>) {
-                    val state: Social.State = when (response.data()?.like()?.likeState()) {
-                        "LIKED" -> Social.State.LIKED
-                        "DISLIKED" -> Social.State.DISLIKED
-                        else -> Social.State.BLANK
-                    }
-                    val likeCount: Int = response.data()?.like()?.likeCount()!!
-                    val dislikeCount: Int = response.data()?.like()?.dislikeCount()!!
-                    updateSocialDrop(state, likeCount, dislikeCount)
-                    (context as DropActivity).runOnUiThread {
-                        setSocialView(state, likeCount, dislikeCount)
+                    if (!IsAuth.getState()) {
+                        context.startActivity(Intent(context, AuthActivity::class.java))
+                    } else {
+                        Log.i("APOLLO", response.errors().toString())
+                        val state: Social.State = when (response.data()?.like()?.likeState()) {
+                            "LIKED" -> Social.State.LIKED
+                            "DISLIKED" -> Social.State.DISLIKED
+                            else -> Social.State.BLANK
+                        }
+
+                        val likeCount: Int = response.data()?.like()?.likeCount()!!
+                        val dislikeCount: Int = response.data()?.like()?.dislikeCount()!!
+                        updateSocialDrop(state, likeCount, dislikeCount)
+                        (context as DropActivity).runOnUiThread {
+                            setSocialView(state, likeCount, dislikeCount)
+                        }
                     }
                 }
 
@@ -148,18 +157,21 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
         dislikeButton.setOnClickListener {
             Apollo.client.mutate(DislikeMutation.builder()
                     .id(drop.id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
-
                 override fun onResponse(response: Response<DislikeMutation.Data>) {
-                    val state: Social.State = when (response.data()?.dislike()?.likeState()) {
-                        "LIKED" -> Social.State.LIKED
-                        "DISLIKED" -> Social.State.DISLIKED
-                        else -> Social.State.BLANK
-                    }
-                    val likeCount: Int = response.data()?.dislike()?.likeCount()!!
-                    val dislikeCount: Int = response.data()?.dislike()?.dislikeCount()!!
-                    updateSocialDrop(state, likeCount, dislikeCount)
-                    (context as DropActivity).runOnUiThread {
-                        setSocialView(state, likeCount, dislikeCount)
+                    if (!IsAuth.getState()) {
+                        context.startActivity(Intent(context, AuthActivity::class.java))
+                    } else {
+                        val state: Social.State = when (response.data()?.dislike()?.likeState()) {
+                            "LIKED" -> Social.State.LIKED
+                            "DISLIKED" -> Social.State.DISLIKED
+                            else -> Social.State.BLANK
+                        }
+                        val likeCount: Int = response.data()?.dislike()?.likeCount()!!
+                        val dislikeCount: Int = response.data()?.dislike()?.dislikeCount()!!
+                        updateSocialDrop(state, likeCount, dislikeCount)
+                        (context as DropActivity).runOnUiThread {
+                            setSocialView(state, likeCount, dislikeCount)
+                        }
                     }
                 }
 

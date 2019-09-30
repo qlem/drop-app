@@ -40,10 +40,9 @@ import android.content.Context
 import android.hardware.Sensor
 import io.sentry.Sentry
 import run.drop.app.sensor.SensorListener
-
-import io.sentry.context.Context as ctx
 import io.sentry.event.BreadcrumbBuilder
 import io.sentry.event.UserBuilder
+import run.drop.app.apollo.IsAuth
 
 
 class DropActivity : AppCompatActivity() {
@@ -103,8 +102,13 @@ class DropActivity : AppCompatActivity() {
     private fun initArScene() {
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
         arFragment.setOnTapArPlaneListener { _: HitResult, _: Plane, _: MotionEvent ->
-            saveDrop()
+            if (IsAuth.getState()) {
+                saveDrop()
+            } else {
+                startActivity(Intent(this@DropActivity, AuthActivity::class.java))
+            }
         }
+
         arFragment.arSceneView.scene.addOnUpdateListener {
             var plane: Plane? = null
             var anchor: Anchor? = null
@@ -364,7 +368,7 @@ class DropActivity : AppCompatActivity() {
         })
     }
 
-    private fun checkAuthentication() {
+    /*private fun checkAuthentication() {
         Apollo.client.query(
                 AmIAuthQuery.builder().build()).enqueue(object : ApolloCall.Callback<AmIAuthQuery.Data>() {
 
@@ -391,7 +395,7 @@ class DropActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         })
-    }
+    }*/
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
@@ -424,7 +428,7 @@ class DropActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        checkAuthentication()
+        //checkAuthentication()
         sensorManager.registerListener(sensorListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
         sensorManager.registerListener(sensorListener, magnetic, SensorManager.SENSOR_DELAY_NORMAL)
     }
