@@ -1,13 +1,13 @@
-package run.drop.app.sensor
+package run.drop.app.orientation
 
 import android.hardware.Sensor
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.SensorEvent
-import run.drop.app.location.LocationHandler
+import run.drop.app.location.LocationManager
 
 
-open class SensorListener : SensorEventListener {
+open class OrientationListener : SensorEventListener {
 
     companion object {
         var North: Double = 0.0
@@ -55,8 +55,8 @@ open class SensorListener : SensorEventListener {
             North = orientation[0].toDouble()
             North = Math.toDegrees(North)
 
-            if (LocationHandler.geoField != null) {
-                North += LocationHandler.geoField!!.declination.toDouble()
+            if (LocationManager.geoField != null) {
+                North += LocationManager.geoField!!.declination.toDouble()
             }
 
             if (North < 0) {

@@ -9,9 +9,8 @@ import android.location.Location
 import android.os.Handler
 import android.util.AttributeSet
 import android.view.View
-import run.drop.app.location.LocationHandler
+import run.drop.app.location.LocationManager
 import kotlin.collections.ArrayList
-import run.drop.app.sensor.SensorListener
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
@@ -20,6 +19,10 @@ import android.util.Log
 import io.sentry.Sentry
 import io.sentry.event.BreadcrumbBuilder
 import io.sentry.event.UserBuilder
+import run.drop.app.orientation.OrientationManager
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 
 class RadarView : View {
@@ -32,7 +35,7 @@ class RadarView : View {
     private val mHandler = Handler()
     private val runnable = object : Runnable {
         override fun run() {
-            location = LocationHandler.lastLocation
+            location = LocationManager.lastLocation
             if (location != null) {
                 updateDrops()
                 updatePoints()
@@ -61,9 +64,9 @@ class RadarView : View {
 
     private fun addPoint(angle: Float, width: Double, height: Double) {
 
-        val d = Math.sqrt(width / 2 * (width / 2) + height / 2 * (height / 2))
-        var x: Double = Math.sin(Math.toRadians(angle.toDouble())) * d.toFloat()
-        var y: Double = -Math.cos(Math.toRadians(angle.toDouble())) * d.toFloat()
+        val d = sqrt(width / 2 * (width / 2) + height / 2 * (height / 2))
+        var x: Double = sin(Math.toRadians(angle.toDouble())) * d.toFloat()
+        var y: Double = -cos(Math.toRadians(angle.toDouble())) * d.toFloat()
 
         if (x > width / 2) {
             val clipFraction = width / 2 / x
@@ -106,7 +109,7 @@ class RadarView : View {
             if (brng < 0)
                 brng += 360
 
-            val heading = (brng - SensorListener.North) % 360
+            val heading = (brng - OrientationManager.azimuth) % 360
 
             if (location!!.distanceTo(locationB).toInt() > 10)
                 addPoint(heading.toFloat(), width.toDouble() + 300, height.toDouble() + 300)

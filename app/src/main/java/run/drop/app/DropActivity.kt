@@ -10,7 +10,6 @@ import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.MotionEvent
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -25,7 +24,7 @@ import run.drop.app.dropObject.Drop
 import run.drop.app.dropObject.Message
 import run.drop.app.dropObject.Social
 import run.drop.app.dropObject.DLocation
-import run.drop.app.location.LocationHandler
+import run.drop.app.location.LocationManager
 import run.drop.app.location.OnLocationUpdateListener
 import run.drop.app.rendering.DropRenderer
 import run.drop.app.utils.colorHexStringToInt
@@ -35,14 +34,11 @@ import java.text.DecimalFormat
 import kotlin.collections.ArrayList
 import com.thebluealliance.spectrum.SpectrumPalette
 import run.drop.app.rendering.Toaster
-import android.hardware.SensorManager
 import android.content.Context
-import android.hardware.Sensor
 import io.sentry.Sentry
-import run.drop.app.sensor.SensorListener
 import io.sentry.event.BreadcrumbBuilder
 import io.sentry.event.UserBuilder
-import run.drop.app.apollo.IsAuth
+import run.drop.app.orientation.OrientationManager
 
 
 class DropActivity : AppCompatActivity() {
@@ -51,12 +47,8 @@ class DropActivity : AppCompatActivity() {
         var drops: MutableList<Drop> = ArrayList()
     }
 
-    private val sensorListener = SensorListener()
-
-    private lateinit var locationHandler: LocationHandler
-    private lateinit var sensorManager: SensorManager
-    private lateinit var accelerometer: Sensor
-    private lateinit var magnetic: Sensor
+    private lateinit var locationManager: LocationManager
+    private lateinit var orientationManager: OrientationManager
     private lateinit var arFragment: ArFragment
 
     private var planeDetection = true
@@ -65,7 +57,7 @@ class DropActivity : AppCompatActivity() {
     private val handler = Handler()
     private val runnable = object : Runnable {
         override fun run() {
-            val currentLocation = LocationHandler.lastLocation
+            val currentLocation = LocationManager.lastLocation
             if (currentLocation != null) {
                 refreshDropList(currentLocation.latitude, currentLocation.longitude, 10.0)
             }
@@ -73,13 +65,7 @@ class DropActivity : AppCompatActivity() {
         }
     }
 
-    private fun initSensors() {
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        magnetic = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
-    }
-
-    private fun initLocationHandler() {
+    private fun initLocationManager() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
             val locationListener: OnLocationUpdateListener = object : OnLocationUpdateListener {
@@ -93,22 +79,12 @@ class DropActivity : AppCompatActivity() {
                     altitudeView.text = df.format(location.altitude).toString()
                 }
             }
-            locationHandler = LocationHandler(this, locationListener)
+            locationManager = LocationManager(this, locationListener)
         }
     }
 
-
-
     private fun initArScene() {
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
-        arFragment.setOnTapArPlaneListener { _: HitResult, _: Plane, _: MotionEvent ->
-            if (IsAuth.getState()) {
-                saveDrop()
-            } else {
-                startActivity(Intent(this@DropActivity, AuthActivity::class.java))
-            }
-        }
-
         arFragment.arSceneView.scene.addOnUpdateListener {
             var plane: Plane? = null
             var anchor: Anchor? = null
@@ -138,29 +114,40 @@ class DropActivity : AppCompatActivity() {
         toaster.show("Loaded AR scene")
     }
 
+    private fun flipPlaneDetection(planeButton: ImageButton) {
+        planeDetection = !planeDetection
+        val session = arFragment.arSceneView.session!!
+        session.pause()
+        val config = session.config
+        config.planeFindingMode =
+                if (planeDetection) {
+                    planeButton.background.alpha = 255
+                    Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+                }
+                else {
+                    planeButton.background.alpha = 100
+                    Config.PlaneFindingMode.DISABLED
+                }
+        session.configure(config)
+        session.resume()
+        toaster.show(("Plane detection turned " + if (planeDetection) "ON" else "OFF"))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drop)
         setStatusBarColor(window, this)
 
-
+        // init sentry (crash report)
         Sentry.getContext().recordBreadcrumb(
                 BreadcrumbBuilder().setMessage("Launching Drop Activity").build()
         )
-
         val email = getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
         Sentry.getContext().user = UserBuilder().setEmail(email).build()
-
         Sentry.capture("User Report")
         Sentry.getContext().clear()
 
         toaster = Toaster(findViewById(R.id.root_layout))
-
-        // init location handler
-        initLocationHandler()
-
-        // init sensors
-        initSensors()
 
         // init ar scene
         initArScene()
@@ -186,22 +173,13 @@ class DropActivity : AppCompatActivity() {
         // init plane button
         val planeButton: ImageButton = findViewById(R.id.plane_btn)
         planeButton.setOnClickListener {
-            planeDetection = !planeDetection
-            val session = arFragment.arSceneView.session!!
-            session.pause()
-            val config = session.config
-            config.planeFindingMode =
-                    if (planeDetection) {
-                        planeButton.background.alpha = 255
-                        Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-                    }
-                    else {
-                        planeButton.background.alpha = 100
-                        Config.PlaneFindingMode.DISABLED
-                    }
-            session.configure(config)
-            session.resume()
-            toaster.show(("Plane detection turned " + if (planeDetection) "ON" else "OFF"))
+            flipPlaneDetection(planeButton)
+        }
+
+        // init drop button
+        val dropButton: Button = findViewById(R.id.drop_btn)
+        dropButton.setOnClickListener {
+            createDrop()
         }
 
         // init next button
@@ -216,7 +194,7 @@ class DropActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveDrop() {
+    private fun createDrop() {
         val dialog = DropDialog(this)
         dialog.setContentView(R.layout.drop_dialog)
 
@@ -241,7 +219,7 @@ class DropActivity : AppCompatActivity() {
 
         dropSubmit.setOnClickListener {
             val color = dialog.color
-            val location = LocationHandler.lastLocation
+            val location = LocationManager.lastLocation
             if (location != null) {
                 saveDropQuery(dropTextInput.text.toString(), colorIntToHexString(color), location.latitude,
                         location.longitude, location.altitude)
@@ -368,7 +346,50 @@ class DropActivity : AppCompatActivity() {
         })
     }
 
-    /*private fun checkAuthentication() {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED) {
+            toaster.show("Drop needs camera and location access")
+            finish()
+        }
+        initLocationManager()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            LocationManager.REQUEST_SETTINGS_CODE -> when (resultCode) {
+                Activity.RESULT_OK -> initLocationManager()
+                Activity.RESULT_CANCELED -> {
+                    toaster.show("Drop needs device location enabled")
+                    finish()
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        initLocationManager()
+        orientationManager = OrientationManager(this)
+        orientationManager.registerListener()
+        handler.post(runnable)
+
+        // checkAuthentication()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        handler.removeCallbacks(runnable)
+        orientationManager.unregisterLister()
+        locationManager.removeLocationUpdates()
+    }
+
+    /* private fun checkAuthentication() {
         Apollo.client.query(
                 AmIAuthQuery.builder().build()).enqueue(object : ApolloCall.Callback<AmIAuthQuery.Data>() {
 
@@ -395,52 +416,5 @@ class DropActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         })
-    }*/
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
-                PackageManager.PERMISSION_GRANTED) {
-            toaster.show("Drop needs camera and location access")
-            finish()
-        }
-        initLocationHandler()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            LocationHandler.REQUEST_SETTINGS_CODE -> when (resultCode) {
-                Activity.RESULT_OK -> initLocationHandler()
-                Activity.RESULT_CANCELED -> {
-                    toaster.show("Drop needs device location enabled")
-                    finish()
-                }
-            }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        handler.post(runnable)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        //checkAuthentication()
-        sensorManager.registerListener(sensorListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-        sensorManager.registerListener(sensorListener, magnetic, SensorManager.SENSOR_DELAY_NORMAL)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        sensorManager.unregisterListener(sensorListener)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        handler.removeCallbacks(runnable)
-        locationHandler.removeLocationUpdates()
-    }
+    } */
 }

@@ -14,7 +14,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.common.api.ResolvableApiException
 
-class LocationHandler(context: Context, private val onLocationUpdateListener: OnLocationUpdateListener) {
+class LocationManager(context: Context, private val onLocationUpdateListener: OnLocationUpdateListener) {
 
     companion object {
         const val REQUEST_SETTINGS_CODE = 42
@@ -78,7 +78,7 @@ class LocationHandler(context: Context, private val onLocationUpdateListener: On
                     }
                 }
             } catch (e: SecurityException) {
-                Log.e("LocationHandler", "ACCESS_FINE_LOCATION permission required")
+                Log.e("LocationManager", "ACCESS_FINE_LOCATION permission required")
                 e.printStackTrace()
             }
         }
