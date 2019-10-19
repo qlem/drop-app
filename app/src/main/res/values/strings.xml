@@ -7,10 +7,6 @@
     <string name="magic_btn_desc">magic btn</string>
     <string name="plane_btn_desc">plane btn</string>
 
-    <string name="latitude">0</string>
-    <string name="longitude">0</string>
-    <string name="altitude">0</string>
-
     <string name="username_hint">Username</string>
     <string name="email_hint">Email</string>
     <string name="password_hint">Password</string>
@@ -28,9 +24,6 @@
     <string name="your_message">Your message</string>
     <string name="color">Color</string>
     <string name="size">Size</string>
-    <string name="latitude_label">LAT</string>
-    <string name="longitude_label">LON</string>
-    <string name="altitude_label">ALT</string>
 
     <string name="like_btn_desc">like btn</string>
     <string name="dislike_btn_desc">dislike btn</string>

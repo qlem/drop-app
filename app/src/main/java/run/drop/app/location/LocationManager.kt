@@ -22,6 +22,10 @@ class LocationManager(context: Context, private val onLocationUpdateListener: On
         var geoField: GeomagneticField? = null
     }
 
+    interface OnLocationUpdateListener {
+        fun onLocationUpdate(location: Location)
+    }
+
     private var client: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(context)
 
@@ -35,7 +39,7 @@ class LocationManager(context: Context, private val onLocationUpdateListener: On
 
         override fun onLocationResult(result: LocationResult)  {
             lastLocation = result.lastLocation
-            onLocationUpdateListener.onLocationUpdateListener(lastLocation as Location)
+            onLocationUpdateListener.onLocationUpdate(lastLocation as Location)
             geoField = GeomagneticField(
                     java.lang.Double.valueOf(lastLocation?.latitude as Double).toFloat(),
                     java.lang.Double.valueOf(lastLocation?.longitude as Double).toFloat(),
