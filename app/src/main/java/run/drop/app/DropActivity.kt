@@ -1,6 +1,5 @@
 package run.drop.app
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,7 +11,6 @@ import android.text.TextWatcher
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
@@ -90,16 +88,21 @@ class DropActivity : AppCompatActivity() {
     }
 
     private fun initLocationManager() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
-            val locationListener: OnLocationUpdateListener = object : OnLocationUpdateListener {
-                override fun onLocationUpdate(location: Location) {
-                    locationIndicatorView.update()
+        val locationListener: OnLocationUpdateListener = object : OnLocationUpdateListener {
+            override fun onLocationUpdate(location: Location) {
+                locationIndicatorView.update()
+            }
+
+            override fun onLocationAvailability(state: Boolean) {
+                if (state) {
+                    locationIndicatorView.start()
+                } else {
+                    locationIndicatorView.stop()
                 }
             }
-            locationManager = LocationManager(this, locationListener)
-            locationIndicatorView.start()
         }
+        locationManager = LocationManager(this, locationListener)
+        locationIndicatorView.start()
     }
 
     private fun flipPlaneDetection(planeButton: ImageButton) {
@@ -319,22 +322,29 @@ class DropActivity : AppCompatActivity() {
         })
     }
 
+    private fun checkResults(grantResults: IntArray): Boolean {
+        if (grantResults.isEmpty()) {
+            return false
+        }
+        grantResults.forEach { result ->
+            if (result == PackageManager.PERMISSION_DENIED) {
+                return false
+            }
+        }
+        return true
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
-                PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Drop needs camera and location access", Toast.LENGTH_LONG).show()
+        if (!checkResults(grantResults)) {
+            Toast.makeText(this, "Drop needs access to camera and location", Toast.LENGTH_LONG).show()
             finish()
         }
-        initLocationManager()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             LocationManager.REQUEST_SETTINGS_CODE -> when (resultCode) {
-                Activity.RESULT_OK -> initLocationManager()
                 Activity.RESULT_CANCELED -> {
                     Toast.makeText(this, "Drop needs device location enabled", Toast.LENGTH_LONG).show()
                     finish()

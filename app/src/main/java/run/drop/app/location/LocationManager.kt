@@ -24,6 +24,7 @@ class LocationManager(context: Context, private val onLocationUpdateListener: On
 
     interface OnLocationUpdateListener {
         fun onLocationUpdate(location: Location)
+        fun onLocationAvailability(state: Boolean)
     }
 
     private var client: FusedLocationProviderClient =
@@ -32,9 +33,7 @@ class LocationManager(context: Context, private val onLocationUpdateListener: On
     private var locationCallback = object : LocationCallback() {
 
         override fun onLocationAvailability(locationAvailability: LocationAvailability) {
-            if (!locationAvailability.isLocationAvailable) {
-                Toast.makeText(context, "Location not available", Toast.LENGTH_SHORT).show()
-            }
+            onLocationUpdateListener.onLocationAvailability(locationAvailability.isLocationAvailable)
         }
 
         override fun onLocationResult(result: LocationResult)  {
