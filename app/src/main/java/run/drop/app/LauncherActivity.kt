@@ -48,7 +48,7 @@ class LauncherActivity : AppCompatActivity() {
             }
 
             override fun onFailure(e: ApolloException) {
-                Log.e("APOLLO", e.message)
+                Log.e("APOLLO", e.message ?: "apollo error: AmIAuthQuery")
 
                 Sentry.getContext().recordBreadcrumb(
                         BreadcrumbBuilder().setMessage("Failed to Check identification APOLLO").build()

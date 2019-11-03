@@ -134,8 +134,7 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
                 }
 
                 override fun onFailure(e: ApolloException) {
-                    Log.e("APOLLO", e.message)
-
+                    Log.e("APOLLO", e.message ?: "apollo error: LikeMutation")
                     Sentry.getContext().recordBreadcrumb(
                             BreadcrumbBuilder().setMessage("Like Button failed Apollo").build()
                     )
@@ -176,7 +175,7 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
                 }
 
                 override fun onFailure(e: ApolloException) {
-                    Log.e("APOLLO", e.message)
+                    Log.e("APOLLO", e.message ?: "apollo error: DislikeMutation")
                     Sentry.getContext().recordBreadcrumb(
                             BreadcrumbBuilder().setMessage("Dislike Button failed Apollo").build()
                     )

@@ -277,7 +277,7 @@ class DropActivity : AppCompatActivity() {
             }
 
             override fun onFailure(e: ApolloException) {
-                Log.e("APOLLO", e.message)
+                Log.e("APOLLO", e.message ?: "apollo error: DroppedAroundQuery")
 
                 Sentry.getContext().recordBreadcrumb(
                         BreadcrumbBuilder().setMessage("Failed to Update Drops List APOLLO").build()
@@ -307,7 +307,7 @@ class DropActivity : AppCompatActivity() {
             }
 
             override fun onFailure(e: ApolloException) {
-                Log.e("APOLLO", e.message)
+                Log.e("APOLLO", e.message ?: "apollo error: CreateDropMutation")
 
                 Sentry.getContext().recordBreadcrumb(
                         BreadcrumbBuilder().setMessage("Failed to save drop APOLLO").build()

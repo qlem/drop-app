@@ -68,14 +68,14 @@ else
     printf " $wrong Apollo check\n\n"
     echo This script needs apollo cli, please install it
 	echo npm i -g apollo
-	echo https://github.com/apollographql/apollo-cli
+	echo https://github.com/apollographql/apollo-tooling
     exit 1
 fi
 
 if [ -z "$verbose_mod" ] ;then
-    apollo schema:download "$output" --endpoint="$endpoint" 2> /dev/null
+    apollo client:download-schema "$output" --endpoint="$endpoint" 2> /dev/null
 else
-    apollo schema:download "$output" --endpoint="$endpoint"
+    apollo client:download-schema "$output" --endpoint="$endpoint"
 fi
 apollo_status=$?
 if [ "$apollo_status" -ne 0 ] && [ -z "$verbose_mod" ] ;then

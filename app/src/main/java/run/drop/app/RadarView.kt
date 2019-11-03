@@ -136,7 +136,7 @@ class RadarView : View {
             }
 
             override fun onFailure(e: ApolloException) {
-                Log.e("APOLLO", e.message)
+                Log.e("APOLLO", e.message ?: "apollo error: DroppedAroundQuery")
 
                 Sentry.getContext().recordBreadcrumb(
                         BreadcrumbBuilder().setMessage("Failed to Update Drops APOLLO").build()

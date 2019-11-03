@@ -80,7 +80,7 @@ class SignInFragment : Fragment() {
             }
 
             override fun onFailure(e: ApolloException) {
-                Log.e("APOLLO", e.message)
+                Log.e("APOLLO", e.message ?: "apollo error: LoginMutation")
                 Sentry.getContext().recordBreadcrumb(
                         BreadcrumbBuilder().setMessage("Failed to Login Apollo").build()
                 )
