@@ -67,7 +67,7 @@ class SignInFragment : Fragment() {
                 when {
                     dataResponse.data()?.login()?.token() != null -> {
                         TokenHandler.setToken(dataResponse.data()?.login()?.token().toString(), context!!)
-                        IsAuth.setSate(true)
+                        IsAuth.state = true
                         startActivity(Intent(context, DropActivity::class.java))
                     }
                     dataResponse.errors()[0].message() == "Invalid email" -> activity?.runOnUiThread {

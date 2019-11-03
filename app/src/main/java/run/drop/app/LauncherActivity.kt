@@ -38,11 +38,7 @@ class LauncherActivity : AppCompatActivity() {
                 AmIAuthQuery.builder().build()).enqueue(object : ApolloCall.Callback<AmIAuthQuery.Data>() {
 
             override fun onResponse(response: Response<AmIAuthQuery.Data>) {
-                if (response.data()!!.amIAuth().isAuth()) {
-                    IsAuth.setSate(true)
-                } else {
-                    IsAuth.setSate(false)
-                }
+                IsAuth.state = response.data()!!.amIAuth().isAuth()
                 startActivity(Intent(this@LauncherActivity, DropActivity::class.java))
                 finish()
             }

@@ -114,7 +114,7 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
                     .id(drop.id).build()).enqueue(object : ApolloCall.Callback<LikeMutation.Data>() {
 
                 override fun onResponse(response: Response<LikeMutation.Data>) {
-                    if (!IsAuth.getState()) {
+                    if (!IsAuth.state) {
                         context.startActivity(Intent(context, AuthActivity::class.java))
                     } else {
                         Log.i("APOLLO", response.errors().toString())
@@ -157,7 +157,7 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
             Apollo.client.mutate(DislikeMutation.builder()
                     .id(drop.id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
                 override fun onResponse(response: Response<DislikeMutation.Data>) {
-                    if (!IsAuth.getState()) {
+                    if (!IsAuth.state) {
                         context.startActivity(Intent(context, AuthActivity::class.java))
                     } else {
                         val state: Social.State = when (response.data()?.dislike()?.likeState()) {
