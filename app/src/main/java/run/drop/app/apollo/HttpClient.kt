@@ -3,7 +3,7 @@ package run.drop.app.apollo
 import okhttp3.OkHttpClient
 
 object HttpClient {
-    var instance: OkHttpClient
+    val instance: OkHttpClient
 
     init {
         instance = OkHttpClient.Builder().addInterceptor {
