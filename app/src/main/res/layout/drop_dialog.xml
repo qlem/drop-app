@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drop_color_picker"
     android:layout_width="300dp"
-    android:layout_height="wrap_content"
+    android:layout_height="350dp"
     android:orientation="vertical">
 
     <TextView
@@ -11,36 +12,48 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
-        android:text="@string/drop" />
+        android:layout_marginBottom="3dp"
+        android:text="@string/drop"
+        app:layout_constraintBottom_toTopOf="@+id/dropTextInput"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <EditText
         android:id="@+id/dropTextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
-        android:layout_marginTop="25dp"
         android:autofillHints=""
         android:hint="@string/your_message"
         android:inputType="textMultiLine"
         android:maxLines="3"
         android:minLines="3"
-        android:singleLine="true" />
+        android:singleLine="true"
+        app:layout_constraintBottom_toTopOf="@+id/palette"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
     <com.thebluealliance.spectrum.SpectrumPalette
         android:id="@+id/palette"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="300dp"
+        android:layout_height="218dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:spectrum_autoPadding="true"
         app:spectrum_colors="@array/rainbow"
         app:spectrum_outlineWidth="2dp" />
 
-
     <Button
         android:id="@+id/dropSubmit"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="245dp"
+        android:layout_height="51dp"
         android:layout_margin="25dp"
         android:enabled="false"
-        android:text="@string/drop" />
+        android:text="@string/drop"
+        app:layout_constraintBottom_toBottomOf="@+id/palette"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

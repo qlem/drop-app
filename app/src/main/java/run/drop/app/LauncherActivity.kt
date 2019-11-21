@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
@@ -49,6 +50,10 @@ class LauncherActivity : AppCompatActivity() {
                 Sentry.getContext().recordBreadcrumb(
                         BreadcrumbBuilder().setMessage("Failed to Check identification APOLLO").build()
                 )
+
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Server is unreachable, retrying in few seconds", Toast.LENGTH_LONG).show()
+                }
 
                 val email = getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
                 Sentry.getContext().user = UserBuilder().setEmail(email).build()

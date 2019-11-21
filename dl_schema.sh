@@ -68,7 +68,7 @@ else
     printf " $wrong Apollo check\n\n"
     echo This script needs apollo cli, please install it
 	echo npm i -g apollo
-	echo https://github.com/apollographql/apollo-tooling
+``	echo https://github.com/apollographql/apollo-tooling
     exit 1
 fi
 

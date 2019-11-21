@@ -34,6 +34,7 @@ import android.content.Context
 import io.sentry.Sentry
 import io.sentry.event.BreadcrumbBuilder
 import io.sentry.event.UserBuilder
+import run.drop.app.apollo.IsAuth
 import run.drop.app.location.LocationIndicatorView
 import run.drop.app.orientation.OrientationManager
 
@@ -50,6 +51,7 @@ class DropActivity : AppCompatActivity() {
     private lateinit var arFragment: ArFragment
     private val handler = Handler()
     private var planeDetection = true
+    private lateinit var dialog: DropDialog
 
     private val refreshDropListTask = object : Runnable {
         override fun run() {
@@ -186,10 +188,11 @@ class DropActivity : AppCompatActivity() {
                 drops.add(tmp)
             }
         }
+        initDropDialog()
     }
 
-    private fun createDrop() {
-        val dialog = DropDialog(this)
+    private fun initDropDialog() {
+        dialog = DropDialog(this)
         dialog.setContentView(R.layout.drop_dialog)
 
         val dropTextInput = dialog.findViewById<EditText>(R.id.dropTextInput)
@@ -220,7 +223,16 @@ class DropActivity : AppCompatActivity() {
             }
             dialog.dismiss()
         }
-        dialog.show()
+    }
+
+
+    private fun createDrop() {
+        if (!IsAuth.getState()) {
+            Toast.makeText(this, "You need to be connected to access this feature", Toast.LENGTH_LONG).show()
+                this.startActivity(Intent(this, AuthActivity::class.java))
+        } else {
+            dialog.show()
+        }
     }
 
     private fun setDrop(item: DroppedAroundQuery.DroppedAround, isDisplayed: Boolean): Drop {
@@ -256,7 +268,7 @@ class DropActivity : AppCompatActivity() {
                     }
                 }
 
-                // Removes the displayed drop from the AR scene if it is outside the area.
+                // Removes the displayed dlrop from the AR scene if it is outside the area.
                 if (current == null && drops.isNotEmpty() && drops[0].isDisplayed) {
                     drops[0].anchorNode?.anchor?.detach()
                 }
@@ -303,7 +315,13 @@ class DropActivity : AppCompatActivity() {
                 .build()).enqueue(object : ApolloCall.Callback<CreateDropMutation.Data>() {
 
             override fun onResponse(response: Response<CreateDropMutation.Data>) {
-                Log.i("APOLLO", response.data()!!.createDrop.id)
+                if (response.data() != null)
+                    Log.i("APOLLO", response.data()!!.createDrop.id)
+                else {
+                    runOnUiThread {
+                        Toast.makeText(applicationContext, "Unable to join server, your drop can't be posted for now", Toast.LENGTH_LONG).show()
+                    }
+                }
             }
 
             override fun onFailure(e: ApolloException) {

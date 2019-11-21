@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
@@ -115,6 +116,9 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
 
                 override fun onResponse(response: Response<LikeMutation.Data>) {
                     if (!IsAuth.state) {
+                        (context as DropActivity).runOnUiThread {
+                            Toast.makeText(context, "You need to be connected to access this feature", Toast.LENGTH_LONG).show()
+                        }
                         context.startActivity(Intent(context, AuthActivity::class.java))
                     } else {
                         Log.i("APOLLO", response.errors().toString())
@@ -158,6 +162,9 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
                     .id(drop.id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
                 override fun onResponse(response: Response<DislikeMutation.Data>) {
                     if (!IsAuth.state) {
+                        (context as DropActivity).runOnUiThread {
+                            Toast.makeText(context, "You need to be connected to access this feature", Toast.LENGTH_LONG).show()
+                        }
                         context.startActivity(Intent(context, AuthActivity::class.java))
                     } else {
                         val state: Social.State = when (response.data()?.dislike()?.likeState()) {
