@@ -35,15 +35,18 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
 
     var state: State = State.INACTIVE
     val node: Node = Node()
+    val boundsNode = Node()
     private var anchorNode: AnchorNode? = null
 
     private lateinit var likeButton: ImageButton
-    private lateinit var dislikeButton: ImageButton
     private lateinit var likeCountView: TextView
-    private lateinit var dislikeCountView: TextView
+    private lateinit var reportButton: ImageButton
+    private lateinit var reportCountView: TextView
 
     init {
-        buildCube()
+        node.collisionShape = Box(Vector3(0.8f, 0.4f, 0.3f))
+        node.localPosition = Vector3(0f, 0.2f, 0f)
+        buildRenderable()
     }
 
     fun attach(arFragment: ArFragment, anchor: Anchor?) {
@@ -62,57 +65,46 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
 
     fun update(social: Social) {
         this.social = social
-        buildCube()
+        // TODO need to rebuild the model ? Maybe just refresh the social view...
+        // buildRenderable()
     }
 
-    private fun buildCube() {
-        MaterialFactory.makeTransparentWithColor(context, Color(0.8f, 0.8f, 0.8f, 0f))
-                .thenAccept { material ->
-                    val cube = ShapeFactory.makeCube(Vector3(0.8f, 0.4f, 0.3f), Vector3(0f, 0.2f, 0f), material)
-                    cube.isShadowCaster = false
-                    cube.isShadowReceiver = false
-                    node.renderable = cube
-
-                    val dropNode = Node()
-                    dropNode.setParent(node)
-                    dropNode.localPosition = Vector3(0f, 0f, 0.15f)
-                    buildRenderable(dropNode)
-                }
-    }
-
-    private fun buildRenderable(node: Node) {
+    private fun buildRenderable() {
+        val dropNode = Node()
+        dropNode.setParent(node)
+        dropNode.localPosition = Vector3(0f, -0.2f, 0.15f)
         ViewRenderable.builder()
                 .setView(context, R.layout.drop_layout)
                 .build()
                 .thenAccept { model ->
                     val dropMessage = model.view.findViewById<TextView>(R.id.drop_message)
                     likeButton = model.view.findViewById(R.id.like_button)
-                    dislikeButton = model.view.findViewById(R.id.dislike_button)
                     likeCountView = model.view.findViewById(R.id.like_total)
-                    dislikeCountView = model.view.findViewById(R.id.dislike_total)
+                    reportButton = model.view.findViewById(R.id.report_button)
+                    reportCountView = model.view.findViewById(R.id.report_total)
 
                     dropMessage.text = message.text
                     dropMessage.setTextColor(message.color)
                     dropMessage.textSize = message.size
 
-                    setSocialView(social.state, social.likeCount, social.dislikeCount)
+                    setSocialView(social.state, social.likeCount, social.reportCount)
                     likeButtonSetListener()
-                    dislikeButtonSetListener()
+                    reportButtonSetListener()
 
                     model.isShadowCaster = false
                     model.isShadowReceiver = false
                     model.setSizer {
                         Vector3(0.8f, 0.4f, 0f)
                     }
-                    node.renderable = model
+                    dropNode.renderable = model
+
                     buildBoundingBox()
                 }
     }
 
     private fun buildBoundingBox() {
-        val boundsNode = Node()
         boundsNode.setParent(node)
-        MaterialFactory.makeTransparentWithColor(context, Color(1f, 0f, 0f, 0.3f))
+        MaterialFactory.makeTransparentWithColor(context, Color(0.8f, 0.8f, 0.8f, 0.3f))
                 .thenAccept { material ->
                     val box = this.node.collisionShape as Box
                     val model = ShapeFactory.makeCube(box.size, box.center, material)
@@ -120,36 +112,38 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
                     model.isShadowReceiver = false
                     model.collisionShape = null
                     boundsNode.renderable = model
+
+                    boundsNode.isEnabled = DropActivity.debugMode
                 }
     }
 
-    private fun setSocialView(state: Social.State, likeCount: Int, dislikeCount: Int) {
+    private fun setSocialView(state: Social.State, likeCount: Int, reportCount: Int) {
         when (state) {
             Social.State.LIKED -> {
                 likeButton.setImageResource(R.drawable.like_filled)
-                dislikeButton.setImageResource(R.drawable.report)
+                reportButton.setImageResource(R.drawable.report_transparent)
             }
-            Social.State.DISLIKED -> {
+            Social.State.REPORTED -> {
                 likeButton.setImageResource(R.drawable.like_transparent)
-                dislikeButton.setImageResource(R.drawable.report_transparent)
+                reportButton.setImageResource(R.drawable.report)
             }
             else -> {
                 likeButton.setImageResource(R.drawable.like_transparent)
-                dislikeButton.setImageResource(R.drawable.report_transparent)
+                reportButton.setImageResource(R.drawable.report_transparent)
             }
         }
         likeCountView.text = likeCount.toString()
-        dislikeCountView.text = dislikeCount.toString()
+        reportCountView.text = reportCount.toString()
     }
 
-    private fun updateSocialDrop(state: Social.State, likeCount: Int, dislikeCount: Int) {
+    private fun updateSocialDrop(state: Social.State, likeCount: Int, reportCount: Int) {
         when (state) {
             Social.State.LIKED -> social.state = Social.State.LIKED
-            Social.State.DISLIKED -> social.state = Social.State.DISLIKED
+            Social.State.REPORTED -> social.state = Social.State.REPORTED
             else -> social.state = Social.State.BLANK
         }
         social.likeCount = likeCount
-        social.dislikeCount = dislikeCount
+        social.reportCount = reportCount
     }
 
     private fun likeButtonSetListener() {
@@ -167,15 +161,15 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
                         Log.i("APOLLO", response.errors().toString())
                         val state: Social.State = when (response.data()?.like()?.likeState()) {
                             "LIKED" -> Social.State.LIKED
-                            "DISLIKED" -> Social.State.DISLIKED
+                            "DISLIKED" -> Social.State.REPORTED
                             else -> Social.State.BLANK
                         }
 
                         val likeCount: Int = response.data()?.like()?.likeCount()!!
-                        val dislikeCount: Int = response.data()?.like()?.dislikeCount()!!
-                        updateSocialDrop(state, likeCount, dislikeCount)
+                        val reportCount: Int = response.data()?.like()?.dislikeCount()!!
+                        updateSocialDrop(state, likeCount, reportCount)
                         (context as DropActivity).runOnUiThread {
-                            setSocialView(state, likeCount, dislikeCount)
+                            setSocialView(state, likeCount, reportCount)
                         }
                     }
                 }
@@ -199,7 +193,7 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
         }
     }
 
-    private fun dislikeTrigger() {
+    private fun reportTrigger() {
         Apollo.client.mutate(DislikeMutation.builder()
                 .id(id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
             override fun onResponse(response: Response<DislikeMutation.Data>) {
@@ -213,14 +207,14 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
                         Log.e("APOLLO", response.toString())
                         val state: Social.State = when (response.data()?.dislike()?.likeState()) {
                             "LIKED" -> Social.State.LIKED
-                            "DISLIKED" -> Social.State.DISLIKED
+                            "DISLIKED" -> Social.State.REPORTED
                             else -> Social.State.BLANK
                         }
                         val likeCount: Int = response.data()?.dislike()?.likeCount()!!
-                        val dislikeCount: Int = response.data()?.dislike()?.dislikeCount()!!
-                        updateSocialDrop(state, likeCount, dislikeCount)
+                        val reportCount: Int = response.data()?.dislike()?.dislikeCount()!!
+                        updateSocialDrop(state, likeCount, reportCount)
                         (context as DropActivity).runOnUiThread {
-                            setSocialView(state, likeCount, dislikeCount)
+                            setSocialView(state, likeCount, reportCount)
                         }
                     }
                 }
@@ -243,17 +237,17 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
         })
     }
 
-    private fun dislikeButtonSetListener() {
+    private fun reportButtonSetListener() {
         val builder = AlertDialog.Builder(this.context)
         builder.setTitle("Report Drop")
         builder.setMessage("Do you want to report this drop as an offensive or inappropriate content ?")
         builder.setIcon(android.R.drawable.ic_dialog_alert)
         builder.setPositiveButton(android.R.string.yes) { _, _ ->
-            dislikeTrigger()
+            reportTrigger()
         }
         builder.setNegativeButton(android.R.string.no, null)
-        dislikeButton.setOnClickListener {
-            if (social.state != Social.State.DISLIKED) {
+        reportButton.setOnClickListener {
+            if (social.state != Social.State.REPORTED) {
                 builder.show()
             }
         }

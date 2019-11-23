@@ -12,8 +12,8 @@ class DropDialog(ctx: Context) : Dialog(ctx),  SpectrumPalette.OnColorSelectedLi
     var color: Int = 0
 
     fun validateForm() {
-        val submitButton = this.findViewById<Button>(R.id.dropSubmit)
-        val textInput = this.findViewById<EditText>(R.id.dropTextInput)
+        val submitButton = this.findViewById<Button>(R.id.drop_btn)
+        val textInput = this.findViewById<EditText>(R.id.message)
         submitButton.isEnabled = textInput.length() > 0 && color != 0
     }
 

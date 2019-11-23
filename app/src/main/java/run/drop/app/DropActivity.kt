@@ -42,15 +42,16 @@ class DropActivity : AppCompatActivity() {
 
     companion object {
         var drops: MutableList<Drop> = ArrayList()
+        var debugMode: Boolean = false
     }
 
     private lateinit var locationManager: LocationManager
     private lateinit var locationIndicatorView: LocationIndicatorView
     private lateinit var orientationManager: OrientationManager
+    private lateinit var dropDialog: DropDialog
     private lateinit var arFragment: ArFragment
     private val handler = Handler()
     private var planeDetection = true
-    private lateinit var dialog: DropDialog
 
     private val refreshDropsTask = object : Runnable {
         override fun run() {
@@ -143,7 +144,7 @@ class DropActivity : AppCompatActivity() {
                 + if (planeDetection) "ON" else "OFF", Toast.LENGTH_LONG).show()
     }
 
-    private fun clearDropList() {
+    private fun clearDrops() {
         drops.forEach { drop ->
             if (drop.state == Drop.State.DISPLAYED) {
                 drop.detach()
@@ -182,7 +183,7 @@ class DropActivity : AppCompatActivity() {
         // init magic button
         val magicButton: ImageButton = findViewById(R.id.refresh_btn)
         magicButton.setOnClickListener {
-            clearDropList()
+            clearDrops()
         }
 
         // init plane button
@@ -191,46 +192,55 @@ class DropActivity : AppCompatActivity() {
             flipPlaneDetection(planeButton)
         }
 
+        // init debug button
+        val debugButton: ImageButton = findViewById(R.id.debug_btn)
+        debugButton.setOnClickListener {
+            debugMode = !debugMode
+            drops.forEach { drop ->
+                if (drop.state == Drop.State.DISPLAYED) {
+                    drop.boundsNode.isEnabled = debugMode
+                }
+            }
+        }
+
         // init drop button
         val dropButton: Button = findViewById(R.id.drop_btn)
         dropButton.setOnClickListener {
             createDrop()
         }
 
+        // init drop dialog
         initDropDialog()
     }
 
     private fun initDropDialog() {
-        dialog = DropDialog(this)
-        dialog.setContentView(R.layout.drop_dialog)
+        dropDialog = DropDialog(this)
+        dropDialog.setContentView(R.layout.drop_dialog)
 
-        val dropTextInput = dialog.findViewById<EditText>(R.id.dropTextInput)
+        val dropTextInput = dropDialog.findViewById<EditText>(R.id.message)
 
-        val dropSubmit = dialog.findViewById<Button>(R.id.dropSubmit)
+        val dropSubmit = dropDialog.findViewById<Button>(R.id.drop_btn)
 
         dropTextInput.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                dialog.validateForm()
+                dropDialog.validateForm()
             }
         })
 
-        // TODO save text size too
-        // val textSize = dialog.findViewById<SeekBar>(R.id.seekBarSize)
+        val colorPalette = dropDialog.findViewById(R.id.palette) as SpectrumPalette
 
-        val colorPalette = dialog.findViewById(R.id.palette) as SpectrumPalette
-
-        colorPalette.setOnColorSelectedListener(dialog)
+        colorPalette.setOnColorSelectedListener(dropDialog)
 
         dropSubmit.setOnClickListener {
-            val color = dialog.color
+            val color = dropDialog.color
             val location = LocationManager.lastLocation
             if (location != null) {
                 saveDropQuery(dropTextInput.text.toString(), colorIntToHexString(color),
                         location.latitude, location.longitude, location.altitude)
             }
-            dialog.dismiss()
+            dropDialog.dismiss()
         }
     }
 
@@ -240,7 +250,7 @@ class DropActivity : AppCompatActivity() {
             Toast.makeText(this, "You need to be connected to access this feature", Toast.LENGTH_LONG).show()
                 this.startActivity(Intent(this, AuthActivity::class.java))
         } else {
-            dialog.show()
+            dropDialog.show()
         }
     }
 
@@ -260,7 +270,7 @@ class DropActivity : AppCompatActivity() {
                     val message = Message(item.text, 30f, colorHexStringToInt(item.color))
                     val socialState = when (item.likeState) {
                         "LIKED" -> Social.State.LIKED
-                        "DISLIKED" -> Social.State.DISLIKED
+                        "DISLIKED" -> Social.State.REPORTED
                         else -> Social.State.BLANK
                     }
                     val social = Social(socialState, item.likeCount, item.dislikeCount)
@@ -381,7 +391,7 @@ class DropActivity : AppCompatActivity() {
 
         handler.removeCallbacks(renderTask)
         handler.removeCallbacks(refreshDropsTask)
-        clearDropList()
+        clearDrops()
         arFragment.arSceneView.pause()
         orientationManager.unregisterLister()
         locationManager.removeLocationUpdates()

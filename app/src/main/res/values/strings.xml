@@ -5,6 +5,7 @@
     <string name="logout_btn_desc">logout btn</string>
     <string name="magic_btn_desc">magic btn</string>
     <string name="plane_btn_desc">plane btn</string>
+    <string name="debug_btn_desc">debug btn</string>
 
     <string name="username_hint">Username</string>
     <string name="email_hint">Email</string>
@@ -19,13 +20,11 @@
         to offer an optimal experience.</string>
     <string name="location_provider_dialog_button">OPEN SETTINGS</string>
 
-    <string name="drop">Drop</string>
-    <string name="your_message">Your message</string>
-    <string name="color">Color</string>
-    <string name="size">Size</string>
+    <string name="drop_dialog_message">Your message</string>
+    <string name="drop_dialog_color">Color</string>
 
     <string name="like_btn_desc">like btn</string>
-    <string name="dislike_btn_desc">dislike btn</string>
+    <string name="report_btn_desc">report btn</string>
 
     <string name="profile_user_photo_description">user photo</string>
     <string name="profile_username">Username</string>

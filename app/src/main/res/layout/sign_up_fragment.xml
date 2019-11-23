@@ -11,7 +11,7 @@
             android:layout_height="205dp"
             android:layout_marginTop="44dp"
             android:adjustViewBounds="true"
-            android:contentDescription="@string/drop"
+            android:contentDescription="@string/app_name"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
