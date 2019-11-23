@@ -227,7 +227,7 @@ class DropActivity : AppCompatActivity() {
 
 
     private fun createDrop() {
-        if (!IsAuth.getState()) {
+        if (!IsAuth.state) {
             Toast.makeText(this, "You need to be connected to access this feature", Toast.LENGTH_LONG).show()
                 this.startActivity(Intent(this, AuthActivity::class.java))
         } else {
