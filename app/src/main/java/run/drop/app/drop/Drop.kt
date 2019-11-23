@@ -23,6 +23,7 @@ import run.drop.app.*
 import run.drop.app.R
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.IsAuth
+import androidx.appcompat.app.AlertDialog
 
 
 class Drop(private val context: Context, val id: String, val dLocation: DLocation,
@@ -126,15 +127,15 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
         when (state) {
             Social.State.LIKED -> {
                 likeButton.setImageResource(R.drawable.like_filled)
-                dislikeButton.setImageResource(R.drawable.dislike_transparent)
+                dislikeButton.setImageResource(R.drawable.report)
             }
             Social.State.DISLIKED -> {
                 likeButton.setImageResource(R.drawable.like_transparent)
-                dislikeButton.setImageResource(R.drawable.dislike_filled)
+                dislikeButton.setImageResource(R.drawable.report_transparent)
             }
             else -> {
                 likeButton.setImageResource(R.drawable.like_transparent)
-                dislikeButton.setImageResource(R.drawable.dislike_transparent)
+                dislikeButton.setImageResource(R.drawable.report_transparent)
             }
         }
         likeCountView.text = likeCount.toString()
@@ -198,17 +199,18 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
         }
     }
 
-    private fun dislikeButtonSetListener() {
-        dislikeButton.setOnClickListener {
-            Apollo.client.mutate(DislikeMutation.builder()
-                    .id(id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
-                override fun onResponse(response: Response<DislikeMutation.Data>) {
-                    if (!IsAuth.state) {
-                        (context as DropActivity).runOnUiThread {
-                            Toast.makeText(context, "You need to be connected to access this feature", Toast.LENGTH_LONG).show()
-                        }
-                        context.startActivity(Intent(context, AuthActivity::class.java))
-                    } else {
+    private fun dislikeTrigger() {
+        Apollo.client.mutate(DislikeMutation.builder()
+                .id(id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
+            override fun onResponse(response: Response<DislikeMutation.Data>) {
+                if (!IsAuth.state) {
+                    (context as DropActivity).runOnUiThread {
+                        Toast.makeText(context, "You need to be connected to access this feature", Toast.LENGTH_LONG).show()
+                    }
+                    context.startActivity(Intent(context, AuthActivity::class.java))
+                } else {
+                    if (response.data() != null) {
+                        Log.e("APOLLO", response.toString())
                         val state: Social.State = when (response.data()?.dislike()?.likeState()) {
                             "LIKED" -> Social.State.LIKED
                             "DISLIKED" -> Social.State.DISLIKED
@@ -222,22 +224,38 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
                         }
                     }
                 }
+            }
 
-                override fun onFailure(e: ApolloException) {
-                    Log.e("APOLLO", e.message ?: "apollo error: DislikeMutation")
-                    Sentry.getContext().recordBreadcrumb(
-                            BreadcrumbBuilder().setMessage("Dislike Button failed Apollo").build()
-                    )
+            override fun onFailure(e: ApolloException) {
+                Log.e("APOLLO", e.message ?: "apollo error: DislikeMutation")
+                Sentry.getContext().recordBreadcrumb(
+                        BreadcrumbBuilder().setMessage("Dislike Button failed Apollo").build()
+                )
 
-                    val email = context.getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
-                    Sentry.getContext().user = UserBuilder().setEmail(email).build()
+                val email = context.getSharedPreferences("Drop", Context.MODE_PRIVATE).getString("email", "")
+                Sentry.getContext().user = UserBuilder().setEmail(email).build()
 
-                    Sentry.capture(e)
-                    Sentry.getContext().clear()
+                Sentry.capture(e)
+                Sentry.getContext().clear()
 
-                    e.printStackTrace()
-                }
-            })
+                e.printStackTrace()
+            }
+        })
+    }
+
+    private fun dislikeButtonSetListener() {
+        val builder = AlertDialog.Builder(this.context)
+        builder.setTitle("Report Drop")
+        builder.setMessage("Do you want to report this drop as an offensive or inappropriate content ?")
+        builder.setIcon(android.R.drawable.ic_dialog_alert)
+        builder.setPositiveButton(android.R.string.yes) { _, _ ->
+            dislikeTrigger()
+        }
+        builder.setNegativeButton(android.R.string.no, null)
+        dislikeButton.setOnClickListener {
+            if (social.state != Social.State.DISLIKED) {
+                builder.show()
+            }
         }
     }
 }
