@@ -18,13 +18,12 @@ import com.google.ar.core.*
 import com.google.ar.sceneform.ux.ArFragment
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.TokenHandler
-import run.drop.app.dropObject.Drop
-import run.drop.app.dropObject.Message
-import run.drop.app.dropObject.Social
-import run.drop.app.dropObject.DLocation
+import run.drop.app.drop.Drop
+import run.drop.app.drop.Message
+import run.drop.app.drop.Social
+import run.drop.app.drop.DLocation
 import run.drop.app.location.LocationManager
 import run.drop.app.location.LocationManager.OnLocationUpdateListener
-import run.drop.app.rendering.DropRenderer
 import run.drop.app.utils.colorHexStringToInt
 import run.drop.app.utils.colorIntToHexString
 import run.drop.app.utils.setStatusBarColor
@@ -53,7 +52,7 @@ class DropActivity : AppCompatActivity() {
     private var planeDetection = true
     private lateinit var dialog: DropDialog
 
-    private val refreshDropListTask = object : Runnable {
+    private val refreshDropsTask = object : Runnable {
         override fun run() {
             val currentLocation = LocationManager.lastLocation
             if (currentLocation != null) {
@@ -63,29 +62,47 @@ class DropActivity : AppCompatActivity() {
         }
     }
 
-    private val displayDropTask = object : Runnable {
-        override fun run() {
-            var plane: Plane? = null
-            var anchor: Anchor? = null
-            val frame: Frame = arFragment.arSceneView.session!!.update()
+    private fun checkCollision(drop: Drop): Boolean {
+        val colliders = arFragment.arSceneView.scene.overlapTestAll(drop.node)
+        colliders.forEach { collider ->
+            val matched = drops.find { drop -> drop.node == collider }
+            if (matched != null) {
+                return true
+            }
+        }
+        return false
+    }
 
-            // TODO optimize here
+    private val renderTask = object : Runnable {
+        override fun run() {
+
+            if (drops.isEmpty()) {
+                handler.postDelayed(this, 1000)
+                return
+            }
+
+            val frame: Frame = arFragment.arSceneView.session!!.update()
             val cameraWidth: Float = frame.camera.textureIntrinsics.imageDimensions[0].toFloat()
             val cameraHeight: Float = frame.camera.textureIntrinsics.imageDimensions[1].toFloat()
             val hitResults: MutableList<HitResult> = frame.hitTest(cameraHeight / 2, cameraWidth / 2)
-            for (hitResult in hitResults) {
-                if (hitResult.trackable is Plane) {
-                    plane = hitResult.trackable as Plane
-                    anchor = hitResult.createAnchor()
-                    break
+
+            if (hitResults.isNotEmpty() && hitResults[0].trackable is Plane) {
+                val plane = hitResults[0].trackable as Plane
+                if (plane.trackingState == TrackingState.TRACKING) {
+                    val drop = drops.find { drop -> drop.state == Drop.State.INACTIVE }
+                    if (drop != null) {
+                        val anchor = hitResults[0].createAnchor()
+                        drop.attach(arFragment, anchor)
+                        if (checkCollision(drop)) {
+                            drop.detach()
+                        } else {
+                            drop.state = Drop.State.DISPLAYED
+                        }
+                    }
                 }
             }
-            if (plane != null && anchor != null && plane.trackingState == TrackingState.TRACKING &&
-                    drops.isNotEmpty() && !drops[0].isDisplayed) {
-                drops[0].isDisplayed = true
-                DropRenderer(this@DropActivity, arFragment, anchor, plane, drops[0])
-            }
-            handler.postDelayed(this, 200)
+
+            handler.postDelayed(this, 1000)
         }
     }
 
@@ -127,8 +144,10 @@ class DropActivity : AppCompatActivity() {
     }
 
     private fun clearDropList() {
-        if (drops.isNotEmpty() && drops[0].isDisplayed) {
-            drops[0].anchorNode?.anchor?.detach()
+        drops.forEach { drop ->
+            if (drop.state == Drop.State.DISPLAYED) {
+                drop.detach()
+            }
         }
         drops.clear()
     }
@@ -178,16 +197,6 @@ class DropActivity : AppCompatActivity() {
             createDrop()
         }
 
-        // init next button
-        val nextButton: Button = findViewById(R.id.next_btn)
-        nextButton.setOnClickListener {
-            if (drops.isNotEmpty() && drops[0].isDisplayed) {
-                drops[0].anchorNode?.anchor?.detach()
-                val tmp: Drop = drops.removeAt(0)
-                tmp.isDisplayed = false
-                drops.add(tmp)
-            }
-        }
         initDropDialog()
     }
 
@@ -235,18 +244,6 @@ class DropActivity : AppCompatActivity() {
         }
     }
 
-    private fun setDrop(item: DroppedAroundQuery.DroppedAround, isDisplayed: Boolean): Drop {
-        val location = DLocation(item.location.latitude, item.location.longitude, item.location.altitude)
-        val message = Message(item.text, 30f, colorHexStringToInt(item.color))
-        val socialState = when (item.likeState) {
-            "LIKED" -> Social.State.LIKED
-            "DISLIKED" -> Social.State.DISLIKED
-            else -> Social.State.BLANK
-        }
-        val social = Social(socialState, item.likeCount, item.dislikeCount)
-        return Drop(item.id, message, location, social, isDisplayed)
-    }
-
     private fun refreshDropList(latitude: Double, longitude: Double, radius: Double) {
         Apollo.client.query(
                 DroppedAroundQuery.builder()
@@ -258,32 +255,29 @@ class DropActivity : AppCompatActivity() {
             override fun onResponse(response: Response<DroppedAroundQuery.Data>) {
                 val data = response.data()!!.droppedAround
 
-                // Retrieves and updates the current displayed drop if it stays in the area.
-                var current: Drop? = null
-                if (drops.isNotEmpty() && drops[0].isDisplayed) {
-                    val matched = data.find { item -> item.id == drops[0].id }
-                    if (matched != null) {
-                        current = setDrop(matched, true)
-                        current.anchorNode = drops[0].anchorNode
-                    }
-                }
-
-                // Removes the displayed dlrop from the AR scene if it is outside the area.
-                if (current == null && drops.isNotEmpty() && drops[0].isDisplayed) {
-                    drops[0].anchorNode?.anchor?.detach()
-                }
-
-                // Clears the drops list then adds the updated displayed drop if exists.
-                drops.clear()
-                if (current != null) {
-                    drops.add(current)
-                }
-
-                // Adds the other drops from the server into the drops list.
                 data.forEach { item ->
-                    if (current == null || item.id != current.id) {
-                        val drop = setDrop(item, false)
-                        drops.add(drop)
+                    val location = DLocation(item.location.latitude, item.location.longitude, item.location.altitude)
+                    val message = Message(item.text, 30f, colorHexStringToInt(item.color))
+                    val socialState = when (item.likeState) {
+                        "LIKED" -> Social.State.LIKED
+                        "DISLIKED" -> Social.State.DISLIKED
+                        else -> Social.State.BLANK
+                    }
+                    val social = Social(socialState, item.likeCount, item.dislikeCount)
+                    var matched = false
+                    drops.forEach { drop ->
+                        if (item.id == drop.id) {
+                            matched = true
+                            this@DropActivity.runOnUiThread {
+                                drop.update(social)
+                            }
+                        }
+                    }
+                    if (!matched) {
+                        this@DropActivity.runOnUiThread {
+                            val drop = Drop(this@DropActivity, item.id, location, message, social)
+                            drops.add(drop)
+                        }
                     }
                 }
             }
@@ -377,16 +371,16 @@ class DropActivity : AppCompatActivity() {
         initLocationManager()
         orientationManager = OrientationManager(this)
         orientationManager.registerListener()
-        handler.post(refreshDropListTask)
+        handler.post(refreshDropsTask)
         arFragment.arSceneView.resume()
-        handler.post(displayDropTask)
+        handler.post(renderTask)
     }
 
     override fun onPause() {
         super.onPause()
 
-        handler.removeCallbacks(refreshDropListTask)
-        handler.removeCallbacks(displayDropTask)
+        handler.removeCallbacks(renderTask)
+        handler.removeCallbacks(refreshDropsTask)
         clearDropList()
         arFragment.arSceneView.pause()
         orientationManager.unregisterLister()

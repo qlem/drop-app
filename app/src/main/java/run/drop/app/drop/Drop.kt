@@ -1,6 +1,5 @@
-package run.drop.app.rendering
+package run.drop.app.drop
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -11,24 +10,31 @@ import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import com.google.ar.core.Anchor
-import com.google.ar.core.Plane
 import com.google.ar.sceneform.AnchorNode
-import com.google.ar.sceneform.math.Quaternion
+import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.collision.Box
 import com.google.ar.sceneform.math.Vector3
-import com.google.ar.sceneform.rendering.ViewRenderable
+import com.google.ar.sceneform.rendering.*
 import com.google.ar.sceneform.ux.ArFragment
-import com.google.ar.sceneform.ux.TransformableNode
 import io.sentry.Sentry
 import io.sentry.event.BreadcrumbBuilder
 import io.sentry.event.UserBuilder
 import run.drop.app.*
+import run.drop.app.R
 import run.drop.app.apollo.Apollo
 import run.drop.app.apollo.IsAuth
-import run.drop.app.dropObject.Drop
-import run.drop.app.dropObject.Social
 
 
-class DropRenderer(private val context: Context, arFragment: ArFragment, anchor: Anchor, plane: Plane, private val drop: Drop) {
+class Drop(private val context: Context, val id: String, val dLocation: DLocation,
+           val message: Message, private var social: Social) {
+
+    enum class State {
+        INACTIVE, ATTACHED, DISPLAYED
+    }
+
+    var state: State = State.INACTIVE
+    val node: Node = Node()
+    private var anchorNode: AnchorNode? = null
 
     private lateinit var likeButton: ImageButton
     private lateinit var dislikeButton: ImageButton
@@ -36,48 +42,84 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
     private lateinit var dislikeCountView: TextView
 
     init {
+        buildCube()
+    }
+
+    fun attach(arFragment: ArFragment, anchor: Anchor?) {
+        state = State.ATTACHED
         val anchorNode = AnchorNode(anchor)
         anchorNode.setParent(arFragment.arSceneView.scene)
+        node.setParent(anchorNode)
+        this.anchorNode = anchorNode
+    }
 
-        drop.anchorNode = anchorNode
+    fun detach() {
+        state = State.INACTIVE
+        node.setParent(null)
+        anchorNode!!.anchor!!.detach()
+    }
 
-        val textNode = TransformableNode(arFragment.transformationSystem)
-        val scaleController = textNode.scaleController
-        scaleController.minScale = 0.01f
-        scaleController.maxScale = 40f
-        scaleController.sensitivity = 0.4f
+    fun update(social: Social) {
+        this.social = social
+        buildCube()
+    }
 
-        if (plane.type === Plane.Type.VERTICAL) {
-            val yAxis = plane.centerPose.yAxis
-            val planeNormal = Vector3(yAxis[0], yAxis[1], yAxis[2])
-            val quaternion = Quaternion.lookRotation(Vector3.up(), planeNormal)
-            textNode.worldRotation = quaternion
-        }
+    private fun buildCube() {
+        MaterialFactory.makeTransparentWithColor(context, Color(0.8f, 0.8f, 0.8f, 0f))
+                .thenAccept { material ->
+                    val cube = ShapeFactory.makeCube(Vector3(0.8f, 0.4f, 0.3f), Vector3(0f, 0.2f, 0f), material)
+                    cube.isShadowCaster = false
+                    cube.isShadowReceiver = false
+                    node.renderable = cube
 
+                    val dropNode = Node()
+                    dropNode.setParent(node)
+                    dropNode.localPosition = Vector3(0f, 0f, 0.15f)
+                    buildRenderable(dropNode)
+                }
+    }
+
+    private fun buildRenderable(node: Node) {
         ViewRenderable.builder()
-        .setView(context, R.layout.drop_layout)
-        .build()
-        .thenAccept { model ->
-            val dropMessage = model.view.findViewById<TextView>(R.id.drop_message)
-            likeButton = model.view.findViewById(R.id.like_button)
-            dislikeButton = model.view.findViewById(R.id.dislike_button)
-            likeCountView = model.view.findViewById(R.id.like_total)
-            dislikeCountView = model.view.findViewById(R.id.dislike_total)
+                .setView(context, R.layout.drop_layout)
+                .build()
+                .thenAccept { model ->
+                    val dropMessage = model.view.findViewById<TextView>(R.id.drop_message)
+                    likeButton = model.view.findViewById(R.id.like_button)
+                    dislikeButton = model.view.findViewById(R.id.dislike_button)
+                    likeCountView = model.view.findViewById(R.id.like_total)
+                    dislikeCountView = model.view.findViewById(R.id.dislike_total)
 
-            dropMessage.text = drop.message.text
-            dropMessage.setTextColor(drop.message.color)
-            dropMessage.textSize = drop.message.size
+                    dropMessage.text = message.text
+                    dropMessage.setTextColor(message.color)
+                    dropMessage.textSize = message.size
 
-            setSocialView(drop.social.state, drop.social.likeCount, drop.social.dislikeCount)
-            likeButtonSetListener()
-            dislikeButtonSetListener()
+                    setSocialView(social.state, social.likeCount, social.dislikeCount)
+                    likeButtonSetListener()
+                    dislikeButtonSetListener()
 
-            model.isShadowCaster = false
-            model.isShadowReceiver = false
-            textNode.setParent(anchorNode)
-            textNode.renderable = model
-            textNode.select()
-        }
+                    model.isShadowCaster = false
+                    model.isShadowReceiver = false
+                    model.setSizer {
+                        Vector3(0.8f, 0.4f, 0f)
+                    }
+                    node.renderable = model
+                    buildBoundingBox()
+                }
+    }
+
+    private fun buildBoundingBox() {
+        val boundsNode = Node()
+        boundsNode.setParent(node)
+        MaterialFactory.makeTransparentWithColor(context, Color(1f, 0f, 0f, 0.3f))
+                .thenAccept { material ->
+                    val box = this.node.collisionShape as Box
+                    val model = ShapeFactory.makeCube(box.size, box.center, material)
+                    model.isShadowCaster = false
+                    model.isShadowReceiver = false
+                    model.collisionShape = null
+                    boundsNode.renderable = model
+                }
     }
 
     private fun setSocialView(state: Social.State, likeCount: Int, dislikeCount: Int) {
@@ -101,18 +143,18 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
 
     private fun updateSocialDrop(state: Social.State, likeCount: Int, dislikeCount: Int) {
         when (state) {
-            Social.State.LIKED -> drop.social.state = Social.State.LIKED
-            Social.State.DISLIKED -> drop.social.state = Social.State.DISLIKED
-            else -> drop.social.state = Social.State.BLANK
+            Social.State.LIKED -> social.state = Social.State.LIKED
+            Social.State.DISLIKED -> social.state = Social.State.DISLIKED
+            else -> social.state = Social.State.BLANK
         }
-        drop.social.likeCount = likeCount
-        drop.social.dislikeCount = dislikeCount
+        social.likeCount = likeCount
+        social.dislikeCount = dislikeCount
     }
 
     private fun likeButtonSetListener() {
         likeButton.setOnClickListener {
             Apollo.client.mutate(LikeMutation.builder()
-                    .id(drop.id).build()).enqueue(object : ApolloCall.Callback<LikeMutation.Data>() {
+                    .id(id).build()).enqueue(object : ApolloCall.Callback<LikeMutation.Data>() {
 
                 override fun onResponse(response: Response<LikeMutation.Data>) {
                     if (!IsAuth.state) {
@@ -159,7 +201,7 @@ class DropRenderer(private val context: Context, arFragment: ArFragment, anchor:
     private fun dislikeButtonSetListener() {
         dislikeButton.setOnClickListener {
             Apollo.client.mutate(DislikeMutation.builder()
-                    .id(drop.id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
+                    .id(id).build()).enqueue(object : ApolloCall.Callback<DislikeMutation.Data>() {
                 override fun onResponse(response: Response<DislikeMutation.Data>) {
                     if (!IsAuth.state) {
                         (context as DropActivity).runOnUiThread {

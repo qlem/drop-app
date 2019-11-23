@@ -21,14 +21,14 @@ class AuthActivity : AppCompatActivity(), OnClickSignInFragmentListener {
         signUpFragment = SignUpFragment()
 
         supportFragmentManager.beginTransaction()
-                .replace(R.id.main_layout,signInFragment, SignInFragment::class.java.name)
+                .replace(R.id.main_layout, signInFragment, SignInFragment::class.java.name)
                 .commit()
     }
 
     override fun showSignUpFragment() {
         supportFragmentManager.beginTransaction()
                 .addToBackStack(null)
-                .replace(R.id.main_layout,signUpFragment, SignUpFragment::class.java.name)
+                .replace(R.id.main_layout, signUpFragment, SignUpFragment::class.java.name)
                 .commit()
     }
 }

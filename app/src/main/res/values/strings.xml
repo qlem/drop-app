@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">Drop</string>
 
-    <string name="next_btn">NEXT</string>
     <string name="drop_btn">DROP</string>
     <string name="logout_btn_desc">logout btn</string>
     <string name="magic_btn_desc">magic btn</string>
@@ -27,4 +26,10 @@
 
     <string name="like_btn_desc">like btn</string>
     <string name="dislike_btn_desc">dislike btn</string>
+
+    <string name="profile_user_photo_description">user photo</string>
+    <string name="profile_username">Username</string>
+    <string name="profile_user_email">Email</string>
+    <string name="profile_nb_written_drop">Number of written Drop</string>
+    <string name="profile_nb_read_drop">Number of read Drop</string>
 </resources>
