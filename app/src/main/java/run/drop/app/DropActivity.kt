@@ -30,6 +30,8 @@ import run.drop.app.utils.setStatusBarColor
 import kotlin.collections.ArrayList
 import com.thebluealliance.spectrum.SpectrumPalette
 import android.content.Context
+import android.view.MenuItem
+import android.view.View
 import io.sentry.Sentry
 import io.sentry.event.BreadcrumbBuilder
 import io.sentry.event.UserBuilder
@@ -38,7 +40,7 @@ import run.drop.app.location.LocationIndicatorView
 import run.drop.app.orientation.OrientationManager
 
 
-class DropActivity : AppCompatActivity() {
+class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
 
     companion object {
         var drops: MutableList<Drop> = ArrayList()
@@ -125,34 +127,6 @@ class DropActivity : AppCompatActivity() {
         locationIndicatorView.start()
     }
 
-    private fun flipPlaneDetection(planeButton: ImageButton) {
-        planeDetection = !planeDetection
-        val session = arFragment.arSceneView.session!!
-        session.pause()
-        val config = session.config
-        config.planeFindingMode =
-                if (planeDetection) {
-                    planeButton.background.alpha = 255
-                    Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-                } else {
-                    planeButton.background.alpha = 100
-                    Config.PlaneFindingMode.DISABLED
-                }
-        session.configure(config)
-        session.resume()
-        Toast.makeText(this, "Plane detection turned "
-                + if (planeDetection) "ON" else "OFF", Toast.LENGTH_LONG).show()
-    }
-
-    private fun clearDrops() {
-        drops.forEach { drop ->
-            if (drop.state == Drop.State.DISPLAYED) {
-                drop.detach()
-            }
-        }
-        drops.clear()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drop)
@@ -172,37 +146,6 @@ class DropActivity : AppCompatActivity() {
         // init arCore
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
 
-        // init logout button
-        val quitButton: ImageButton = findViewById(R.id.logout_btn)
-        quitButton.setOnClickListener {
-            TokenHandler.clearToken(this)
-            startActivity(Intent(this, AuthActivity::class.java))
-            finish()
-        }
-
-        // init magic button
-        val magicButton: ImageButton = findViewById(R.id.refresh_btn)
-        magicButton.setOnClickListener {
-            clearDrops()
-        }
-
-        // init plane button
-        val planeButton: ImageButton = findViewById(R.id.plane_btn)
-        planeButton.setOnClickListener {
-            flipPlaneDetection(planeButton)
-        }
-
-        // init debug button
-        val debugButton: ImageButton = findViewById(R.id.debug_btn)
-        debugButton.setOnClickListener {
-            debugMode = !debugMode
-            drops.forEach { drop ->
-                if (drop.state == Drop.State.DISPLAYED) {
-                    drop.boundsNode.isEnabled = debugMode
-                }
-            }
-        }
-
         // init drop button
         val dropButton: Button = findViewById(R.id.drop_btn)
         dropButton.setOnClickListener {
@@ -211,6 +154,86 @@ class DropActivity : AppCompatActivity() {
 
         // init drop dialog
         initDropDialog()
+    }
+
+    fun showMenu(view: View) {
+        val menu = PopupMenu(this, view).apply {
+            setOnMenuItemClickListener(this@DropActivity)
+            inflate(R.menu.menu)
+        }
+        val item1 = menu.menu.findItem(R.id.menu_plane)
+        if (planeDetection) {
+            item1.title = "Turn OFF plane detection"
+        } else {
+            item1.title = "Turn ON plane detection"
+        }
+        val item2 = menu.menu.findItem(R.id.menu_debug)
+        if (debugMode) {
+            item2.title = "Turn OFF debug mode"
+        } else {
+            item2.title = "Turn ON debug mode"
+        }
+        menu.show()
+    }
+
+    override fun onMenuItemClick(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menu_reload -> {
+                clearDrops()
+                true
+            }
+            R.id.menu_plane -> {
+                flipPlaneDetection()
+                true
+            }
+            R.id.menu_debug -> {
+                flipDebugMode()
+                true
+            }
+            R.id.menu_logout -> {
+                TokenHandler.clearToken(this)
+                startActivity(Intent(this, AuthActivity::class.java))
+                finish()
+                true
+            }
+            else -> false
+        }
+    }
+
+    private fun clearDrops() {
+        drops.forEach { drop ->
+            if (drop.state == Drop.State.DISPLAYED) {
+                drop.detach()
+            }
+        }
+        drops.clear()
+    }
+
+    private fun flipPlaneDetection() {
+        planeDetection = !planeDetection
+        val session = arFragment.arSceneView.session!!
+        session.pause()
+        val config = session.config
+        if (planeDetection) {
+            config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+        } else {
+            config.planeFindingMode = Config.PlaneFindingMode.DISABLED
+        }
+        session.configure(config)
+        session.resume()
+        Toast.makeText(this, "Plane detection turned " +
+                if (planeDetection) "ON" else "OFF", Toast.LENGTH_LONG).show()
+    }
+
+    private fun flipDebugMode() {
+        debugMode = !debugMode
+        drops.forEach { drop ->
+            if (drop.state == Drop.State.DISPLAYED) {
+                drop.boundsNode.isEnabled = debugMode
+            }
+        }
+        Toast.makeText(this, "Debug mode turned " + if (debugMode) "ON" else "OFF",
+                Toast.LENGTH_LONG).show()
     }
 
     private fun initDropDialog() {

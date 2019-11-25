@@ -2,10 +2,8 @@
     <string name="app_name">Drop</string>
 
     <string name="drop_btn">DROP</string>
-    <string name="logout_btn_desc">logout btn</string>
-    <string name="magic_btn_desc">magic btn</string>
-    <string name="plane_btn_desc">plane btn</string>
-    <string name="debug_btn_desc">debug btn</string>
+    <string name="drop_btn_desc">drop btn</string>
+    <string name="settings_btn_desc">settings btn</string>
 
     <string name="username_hint">Username</string>
     <string name="email_hint">Email</string>
@@ -31,4 +29,9 @@
     <string name="profile_user_email">Email</string>
     <string name="profile_nb_written_drop">Number of written Drop</string>
     <string name="profile_nb_read_drop">Number of read Drop</string>
+
+    <string name="menu_reload">Reload the AR scene</string>
+    <string name="menu_plane">Turn OFF plane detection</string>
+    <string name="menu_debug">Turn ON debug Mode</string>
+    <string name="menu_logout">Logout</string>
 </resources>
