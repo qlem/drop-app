@@ -30,6 +30,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
     lintOptions {
         lintConfig file("lint.xml")
     }
@@ -54,7 +58,7 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.apollographql.apollo:apollo-runtime:1.2.1'
-    implementation 'com.google.android.material:material:1.2.0-alpha01'
+    implementation 'com.google.android.material:material:1.2.0-alpha02'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.1'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
@@ -68,4 +72,9 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.14.1'
     implementation 'io.sentry:sentry-android:1.7.16'
     implementation 'org.slf4j:slf4j-nop:1.7.25'
+
+    implementation ("androidx.fragment:fragment-testing:1.2.0-alpha02") {
+        exclude group: 'androidx.test', module: 'core'
+    }
+    androidTestImplementation 'androidx.test:core:1.2.0'
 }

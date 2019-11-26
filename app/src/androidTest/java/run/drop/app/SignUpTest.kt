@@ -1,64 +1,62 @@
 package run.drop.app
 
+import androidx.fragment.app.testing.FragmentScenario
+import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
-import androidx.test.filters.LargeTest
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
-import org.hamcrest.Matchers.not
+import run.drop.app.authFragments.SignUpFragment
 
 @RunWith(AndroidJUnit4::class)
-@LargeTest
 class SignUpTest {
 
-    @get:Rule
-    var activityRule: ActivityTestRule<SignUpActivity>
-            = ActivityTestRule(SignUpActivity::class.java)
+    private lateinit var scenario: FragmentScenario<SignUpFragment>
+
+    @Before
+    fun init() {
+        scenario = launchFragmentInContainer(null, R.style.AppTheme)
+    }
 
     @Test
     fun emptyFieldsToast() {
-        onView(withId(R.id.new_account_button)).perform(click())
-        onView(withText("Missing fields"))
-                .inRoot(withDecorView(not(activityRule.activity.window.decorView)))
-                .check(matches(isDisplayed()))
+        onView(withId(R.id.sign_up_button)).perform(click())
+        onView(withId(R.id.username))
+                .check(matches(hasErrorText("Can not be empty")))
     }
 
     @Test
     fun duplicateCredentials() {
-        onView(withId(R.id.email))
-                .perform(typeText("gauthier.cler@gmail.com"))
         onView(withId(R.id.username))
-                .perform(typeText("Gauthier"))
+                .perform(typeText("toto"), closeSoftKeyboard())
+        onView(withId(R.id.email))
+                .perform(typeText("toto@toto.toto"), closeSoftKeyboard())
         onView(withId(R.id.password))
-                .perform(typeText("123"), closeSoftKeyboard())
+                .perform(typeText("toto"), closeSoftKeyboard())
         onView(withId(R.id.confirmed_password))
-                .perform(typeText("123"), closeSoftKeyboard())
-        onView(withId(R.id.new_account_button)).perform(click())
-        onView(withText("Email address or username already exists"))
-                .inRoot(withDecorView(not(activityRule.activity.window.decorView)))
-                .check(matches(isDisplayed()))
+                .perform(typeText("toto"), closeSoftKeyboard())
+        onView(withId(R.id.sign_up_button)).perform(click())
+        onView(withId(R.id.username))
+                .check(matches(hasErrorText("Email address or username already exists")))
     }
 
+    @Test
     fun notMatchingPassword() {
         onView(withId(R.id.email))
-                .perform(typeText(java.util.UUID.randomUUID().toString()))
+                .perform(typeText(java.util.UUID.randomUUID().toString()), closeSoftKeyboard())
         onView(withId(R.id.username))
-                .perform(typeText(java.util.UUID.randomUUID().toString()))
+                .perform(typeText(java.util.UUID.randomUUID().toString()), closeSoftKeyboard())
         onView(withId(R.id.password))
-                .perform(typeText(java.util.UUID.randomUUID().toString()))
+                .perform(typeText(java.util.UUID.randomUUID().toString()), closeSoftKeyboard())
         onView(withId(R.id.confirmed_password))
                 .perform(typeText(java.util.UUID.randomUUID().toString()), closeSoftKeyboard())
-        onView(withId(R.id.new_account_button)).perform(click())
-        onView(withText("Password confirmation failed"))
-                .inRoot(withDecorView(not(activityRule.activity.window.decorView)))
-                .check(matches(isDisplayed()))
+        onView(withId(R.id.sign_up_button)).perform(click())
+        onView(withId(R.id.confirmed_password))
+                .check(matches(hasErrorText("Must be the same as the password")))
     }
 }

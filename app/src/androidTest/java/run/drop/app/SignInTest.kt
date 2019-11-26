@@ -1,34 +1,28 @@
 package run.drop.app
 
+import androidx.fragment.app.testing.FragmentScenario
+import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
-import androidx.test.filters.LargeTest
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
-import org.hamcrest.Matchers.not
+import run.drop.app.authFragments.SignInFragment
 
 @RunWith(AndroidJUnit4::class)
-@LargeTest
 class SignInTest {
 
     private lateinit var stringToBetyped: String
-
-    @get:Rule
-    var activityRule: ActivityTestRule<SignInActivity>
-            = ActivityTestRule(SignInActivity::class.java)
-
-
+    private lateinit var scenario: FragmentScenario<SignInFragment>
 
     @Before
-    fun initValidString() {
+    fun init() {
+        scenario = launchFragmentInContainer(null, R.style.AppTheme)
+
         // Specify a valid string.
         stringToBetyped = java.util.UUID.randomUUID().toString()
     }
@@ -47,27 +41,25 @@ class SignInTest {
     @Test
     fun emptyFieldsToast() {
         onView(withId(R.id.sign_in_button)).perform(click())
-        onView(withText("Please enter an email and a password"))
-                .inRoot(withDecorView(not(activityRule.activity.window.decorView)))
-                .check(matches(isDisplayed()))
+        onView(withId(R.id.email))
+                .check(matches(hasErrorText("Can not be empty")))
     }
 
     @Test
-    fun wrongCredentials() {
+    fun wrongEmail() {
         onView(withId(R.id.email))
-                .perform(typeText(java.util.UUID.randomUUID().toString()))
+                .perform(typeText(java.util.UUID.randomUUID().toString()), closeSoftKeyboard())
         onView(withId(R.id.password))
                 .perform(typeText(java.util.UUID.randomUUID().toString()), closeSoftKeyboard())
         onView(withId(R.id.sign_in_button)).perform(click())
-        onView(withText("Wrong email or password"))
-                .inRoot(withDecorView(not(activityRule.activity.window.decorView)))
-                .check(matches(isDisplayed()))
+        onView(withId(R.id.email))
+                .check(matches(hasErrorText("Wrong email")))
     }
 
     @Test
     fun correctCredentials() {
         onView(withId(R.id.email))
-                .perform(typeText("gauthier.cler@gmail.com"))
+                .perform(typeText("gauthier.cler@gmail.com"), closeSoftKeyboard())
         onView(withId(R.id.password))
                 .perform(typeText("123"), closeSoftKeyboard())
         onView(withId(R.id.sign_in_button)).perform(click())

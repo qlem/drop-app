@@ -5,18 +5,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/drop_logo"
-            android:layout_width="190dp"
-            android:layout_height="205dp"
-            android:layout_marginTop="44dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/app_name"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/drop_logo" />
+    <ImageView
+        android:id="@+id/drop_logo"
+        android:layout_width="158dp"
+        android:layout_height="153dp"
+        android:layout_marginTop="44dp"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/drop_logo" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/username_layout"
