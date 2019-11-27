@@ -346,14 +346,16 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
                     Log.i("APOLLO", response.data()!!.createDrop.id)
                 else {
                     runOnUiThread {
-                        Toast.makeText(applicationContext, "Unable to join server, your drop can't be posted for now", Toast.LENGTH_LONG).show()
+                        Toast.makeText(applicationContext, (if (response.hasErrors()) response.errors()[0].message() else "An error occured"), Toast.LENGTH_LONG).show()
                     }
                 }
             }
 
             override fun onFailure(e: ApolloException) {
                 Log.e("APOLLO", e.message ?: "apollo error: CreateDropMutation")
-
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Unable to join server, your drop can't be posted for now", Toast.LENGTH_LONG).show()
+                }
                 Sentry.getContext().recordBreadcrumb(
                         BreadcrumbBuilder().setMessage("Failed to save drop APOLLO").build()
                 )
