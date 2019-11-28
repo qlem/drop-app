@@ -65,8 +65,6 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
 
     fun update(social: Social) {
         this.social = social
-        // TODO need to rebuild the model ? Maybe just refresh the social view...
-        // buildRenderable()
         setSocialView(social.state, social.likeCount, social.reportCount)
     }
 

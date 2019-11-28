@@ -5,9 +5,9 @@
     <item android:id="@+id/menu_reload"
         android:title="@string/menu_reload"/>
     <item android:id="@+id/menu_plane"
-        android:title="@string/menu_plane"/>
+        android:title="@string/menu_plane_off"/>
     <item android:id="@+id/menu_debug"
-        android:title="@string/menu_debug"/>
+        android:title="@string/menu_debug_on"/>
     <item android:id="@+id/menu_logout"
         android:title="@string/menu_logout"/>
 </menu>

@@ -24,18 +24,22 @@
     <string name="like_btn_desc">like btn</string>
     <string name="report_btn_desc">report btn</string>
 
-    <string name="user_photo_desc">user photo</string>
-    <string name="email">foo.baz@world.com</string>
-    <string name="nb_drop">42</string>
-    <string name="nb_drop_label">drop</string>
-    <string name="nb_like">42</string>
-    <string name="nb_like_label">like</string>
-    <string name="nb_report">42</string>
-    <string name="nb_report_label">report</string>
+    <string name="profile_photo_desc">user photo</string>
+    <string name="profile_username">Anonymous</string>
+    <string name="profile_email">anonymous@world.com</string>
+    <string name="profile_nb_drop">0</string>
+    <string name="profile_nb_drop_label">drops</string>
+    <string name="profile_nb_like">0</string>
+    <string name="profile_nb_like_label">likes received</string>
+    <string name="profile_nb_report">0</string>
+    <string name="profile_nb_report_label">reports received</string>
 
     <string name="menu_profile">Profile</string>
     <string name="menu_reload">Clean the AR scene</string>
-    <string name="menu_plane">Turn OFF plane detection</string>
-    <string name="menu_debug">Turn ON debug mode</string>
+    <string name="menu_plane_on">Turn ON plane detection</string>
+    <string name="menu_plane_off">Turn OFF plane detection</string>
+    <string name="menu_debug_on">Turn ON debug mode</string>
+    <string name="menu_debug_off">Turn OFF debug mode</string>
     <string name="menu_logout">Logout</string>
+    <string name="menu_sign_in">Sign In</string>
 </resources>

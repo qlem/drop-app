@@ -161,18 +161,19 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
             setOnMenuItemClickListener(this@DropActivity)
             inflate(R.menu.menu)
         }
-        val item1 = menu.menu.findItem(R.id.menu_plane)
-        if (planeDetection) {
-            item1.title = "Turn OFF plane detection"
-        } else {
-            item1.title = "Turn ON plane detection"
-        }
-        val item2 = menu.menu.findItem(R.id.menu_debug)
-        if (debugMode) {
-            item2.title = "Turn OFF debug mode"
-        } else {
-            item2.title = "Turn ON debug mode"
-        }
+
+        var itemMenu = menu.menu.findItem(R.id.menu_plane)
+        itemMenu.title = if (planeDetection) resources.getString(R.string.menu_plane_off) else
+            resources.getString(R.string.menu_plane_on)
+
+        itemMenu = menu.menu.findItem(R.id.menu_debug)
+        itemMenu.title = if (debugMode) resources.getString(R.string.menu_debug_off) else
+            resources.getString(R.string.menu_debug_on)
+
+        itemMenu = menu.menu.findItem(R.id.menu_logout)
+        itemMenu.title = if (IsAuth.state) resources.getString(R.string.menu_logout) else
+            resources.getString(R.string.menu_sign_in)
+
         menu.show()
     }
 
@@ -196,6 +197,7 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
             }
             R.id.menu_logout -> {
                 TokenHandler.clearToken(this)
+                IsAuth.state = false
                 startActivity(Intent(this, AuthActivity::class.java))
                 finish()
                 true
@@ -317,7 +319,7 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
                     }
                 }
                 val dataIds = data.map { it.id }
-                drops.filter { it.id !in dataIds }.forEach{
+                drops.filter { it.id !in dataIds }.forEach {
                     runOnUiThread {
                         it.detach()
                     }
