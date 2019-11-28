@@ -316,6 +316,13 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
                         }
                     }
                 }
+                val dataIds = data.map { it.id }
+                drops.filter { it.id !in dataIds }.forEach{
+                    runOnUiThread {
+                        it.detach()
+                    }
+                }
+                drops.removeAll { it.id !in dataIds }
             }
 
             override fun onFailure(e: ApolloException) {
