@@ -29,13 +29,20 @@
         <activity
             android:name=".AuthActivity"
             android:theme="@style/AppTheme"/>
-        <activity android:name=".DropActivity"
+        <activity
+            android:name=".DropActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ProfileActivity"
             android:theme="@style/AppTheme"
             android:screenOrientation="portrait"/>
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-        <meta-data android:name="com.google.ar.core" android:value="required" />
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
     </application>
 
 </manifest>

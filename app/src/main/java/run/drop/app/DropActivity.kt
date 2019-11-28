@@ -147,7 +147,7 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
 
         // init drop button
-        val dropButton: Button = findViewById(R.id.drop_btn)
+        val dropButton: ImageButton = findViewById(R.id.drop_btn)
         dropButton.setOnClickListener {
             createDrop()
         }
@@ -178,6 +178,10 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.menu_profile -> {
+                startActivity(Intent(this, ProfileActivity::class.java))
+                true
+            }
             R.id.menu_reload -> {
                 clearDrops()
                 true
@@ -266,7 +270,6 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
             dropDialog.dismiss()
         }
     }
-
 
     private fun createDrop() {
         if (!IsAuth.state) {
