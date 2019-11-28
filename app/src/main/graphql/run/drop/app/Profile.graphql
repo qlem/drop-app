@@ -1,0 +1,11 @@
+query Profile {
+    profile {
+        me {
+            username
+            email
+        }
+        drops
+        likes
+        reports
+    }
+}

@@ -1,0 +1,312 @@
+# This file was generated based on ".graphqlconfig". Do not edit manually.
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type AuthCheck {
+    isAuth: Boolean!
+    me: User
+}
+
+type AuthPayload {
+    token: String!
+    user: User!
+}
+
+type Drop {
+    author: User!
+    color: String!
+    createdAt: DateTime!
+    dislikeCount: Int!
+    id: ID!
+    likeCount: Int!
+    likeState: String
+    location: Location!
+    text: String!
+    updatedAt: DateTime!
+}
+
+type Location {
+    altitude: Float!
+    id: ID!
+    latitude: Float!
+    longitude: Float!
+}
+
+type Mutation {
+    createDrop(color: String!, location: LocationCreateInput!, text: String!): Drop!
+    deleteDrop(id: ID!): Drop
+    "Delete its own user"
+    deleteMe: User
+    "ADMIN role required"
+    deleteUser(id: ID!): User
+    "Dislike a Drop (provide its ID). When the drop is already disliked, the dislike is removed."
+    dislike(id: ID!): Drop!
+    "Like a Drop (provide its ID). When the drop is already liked, the like is removed."
+    like(id: ID!): Drop!
+    login(email: String!, password: String!): AuthPayload!
+    "ADMIN role required"
+    loginBack(email: String!, password: String!): AuthPayload!
+    "ADMIN role required"
+    setRole(roles: [Role!]!, userId: ID!): User
+    signup(email: String!, password: String!, username: String!): AuthPayload!
+    updateDrop(color: String!, id: ID!, location: LocationUpdateDataInput!, text: String!): Drop
+    "Update its own username"
+    updateUsername(username: String!): User
+}
+
+type Profile {
+    drops: Int
+    likes: Int
+    me: User!
+    reports: Int
+}
+
+type Query {
+    amIAdmin: Boolean!
+    amIAuth: AuthCheck!
+    drop(where: DropWhereUniqueInput!): Drop
+    dropped(after: String, before: String, first: Int, last: Int, orderBy: DropOrderByInput, skip: Int, where: DropWhereInput): [Drop!]!
+    droppedAround(latitude: Float!, longitude: Float!, radius: Float!): [Drop!]!
+    profile: Profile!
+    "ADMIN role required"
+    users(after: String, before: String, first: Int, last: Int, orderBy: UserOrderByInput, skip: Int, where: UserWhereInput): [User!]!
+}
+
+type User {
+    drops: [Drop!]
+    email: String!
+    id: ID!
+    roles: [Role!]!
+    username: String!
+}
+
+enum DropOrderByInput {
+    color_ASC
+    color_DESC
+    createdAt_ASC
+    createdAt_DESC
+    id_ASC
+    id_DESC
+    text_ASC
+    text_DESC
+    updatedAt_ASC
+    updatedAt_DESC
+}
+
+enum Role {
+    ADMIN
+    USER
+}
+
+enum UserOrderByInput {
+    createdAt_ASC
+    createdAt_DESC
+    email_ASC
+    email_DESC
+    id_ASC
+    id_DESC
+    password_ASC
+    password_DESC
+    updatedAt_ASC
+    updatedAt_DESC
+    username_ASC
+    username_DESC
+}
+
+input DropWhereInput {
+    AND: [DropWhereInput!]
+    NOT: [DropWhereInput!]
+    OR: [DropWhereInput!]
+    author: UserWhereInput
+    color: String
+    color_contains: String
+    color_ends_with: String
+    color_gt: String
+    color_gte: String
+    color_in: [String!]
+    color_lt: String
+    color_lte: String
+    color_not: String
+    color_not_contains: String
+    color_not_ends_with: String
+    color_not_in: [String!]
+    color_not_starts_with: String
+    color_starts_with: String
+    createdAt: DateTime
+    createdAt_gt: DateTime
+    createdAt_gte: DateTime
+    createdAt_in: [DateTime!]
+    createdAt_lt: DateTime
+    createdAt_lte: DateTime
+    createdAt_not: DateTime
+    createdAt_not_in: [DateTime!]
+    id: ID
+    id_contains: ID
+    id_ends_with: ID
+    id_gt: ID
+    id_gte: ID
+    id_in: [ID!]
+    id_lt: ID
+    id_lte: ID
+    id_not: ID
+    id_not_contains: ID
+    id_not_ends_with: ID
+    id_not_in: [ID!]
+    id_not_starts_with: ID
+    id_starts_with: ID
+    location: LocationWhereInput
+    text: String
+    text_contains: String
+    text_ends_with: String
+    text_gt: String
+    text_gte: String
+    text_in: [String!]
+    text_lt: String
+    text_lte: String
+    text_not: String
+    text_not_contains: String
+    text_not_ends_with: String
+    text_not_in: [String!]
+    text_not_starts_with: String
+    text_starts_with: String
+    updatedAt: DateTime
+    updatedAt_gt: DateTime
+    updatedAt_gte: DateTime
+    updatedAt_in: [DateTime!]
+    updatedAt_lt: DateTime
+    updatedAt_lte: DateTime
+    updatedAt_not: DateTime
+    updatedAt_not_in: [DateTime!]
+}
+
+input DropWhereUniqueInput {
+    id: ID
+}
+
+input LocationCreateInput {
+    altitude: Float!
+    id: ID
+    latitude: Float!
+    longitude: Float!
+}
+
+input LocationUpdateDataInput {
+    altitude: Float
+    latitude: Float
+    longitude: Float
+}
+
+input LocationWhereInput {
+    AND: [LocationWhereInput!]
+    NOT: [LocationWhereInput!]
+    OR: [LocationWhereInput!]
+    altitude: Float
+    altitude_gt: Float
+    altitude_gte: Float
+    altitude_in: [Float!]
+    altitude_lt: Float
+    altitude_lte: Float
+    altitude_not: Float
+    altitude_not_in: [Float!]
+    id: ID
+    id_contains: ID
+    id_ends_with: ID
+    id_gt: ID
+    id_gte: ID
+    id_in: [ID!]
+    id_lt: ID
+    id_lte: ID
+    id_not: ID
+    id_not_contains: ID
+    id_not_ends_with: ID
+    id_not_in: [ID!]
+    id_not_starts_with: ID
+    id_starts_with: ID
+    latitude: Float
+    latitude_gt: Float
+    latitude_gte: Float
+    latitude_in: [Float!]
+    latitude_lt: Float
+    latitude_lte: Float
+    latitude_not: Float
+    latitude_not_in: [Float!]
+    longitude: Float
+    longitude_gt: Float
+    longitude_gte: Float
+    longitude_in: [Float!]
+    longitude_lt: Float
+    longitude_lte: Float
+    longitude_not: Float
+    longitude_not_in: [Float!]
+}
+
+input UserWhereInput {
+    AND: [UserWhereInput!]
+    NOT: [UserWhereInput!]
+    OR: [UserWhereInput!]
+    drops_every: DropWhereInput
+    drops_none: DropWhereInput
+    drops_some: DropWhereInput
+    email: String
+    email_contains: String
+    email_ends_with: String
+    email_gt: String
+    email_gte: String
+    email_in: [String!]
+    email_lt: String
+    email_lte: String
+    email_not: String
+    email_not_contains: String
+    email_not_ends_with: String
+    email_not_in: [String!]
+    email_not_starts_with: String
+    email_starts_with: String
+    id: ID
+    id_contains: ID
+    id_ends_with: ID
+    id_gt: ID
+    id_gte: ID
+    id_in: [ID!]
+    id_lt: ID
+    id_lte: ID
+    id_not: ID
+    id_not_contains: ID
+    id_not_ends_with: ID
+    id_not_in: [ID!]
+    id_not_starts_with: ID
+    id_starts_with: ID
+    password: String
+    password_contains: String
+    password_ends_with: String
+    password_gt: String
+    password_gte: String
+    password_in: [String!]
+    password_lt: String
+    password_lte: String
+    password_not: String
+    password_not_contains: String
+    password_not_ends_with: String
+    password_not_in: [String!]
+    password_not_starts_with: String
+    password_starts_with: String
+    username: String
+    username_contains: String
+    username_ends_with: String
+    username_gt: String
+    username_gte: String
+    username_in: [String!]
+    username_lt: String
+    username_lte: String
+    username_not: String
+    username_not_contains: String
+    username_not_ends_with: String
+    username_not_in: [String!]
+    username_not_starts_with: String
+    username_starts_with: String
+}
+
+
+scalar DateTime
