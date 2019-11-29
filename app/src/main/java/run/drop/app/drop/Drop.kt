@@ -60,7 +60,7 @@ class Drop(private val context: Context, val id: String, val dLocation: DLocatio
     fun detach() {
         state = State.INACTIVE
         node.setParent(null)
-        anchorNode!!.anchor!!.detach()
+        anchorNode?.anchor?.detach()
     }
 
     fun update(social: Social) {

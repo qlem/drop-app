@@ -59,7 +59,7 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
         override fun run() {
             val currentLocation = LocationManager.lastLocation
             if (currentLocation != null) {
-                refreshDropList(currentLocation.latitude, currentLocation.longitude, 10.0)
+                refreshDropList(currentLocation.latitude, currentLocation.longitude, 20.0)
             }
             handler.postDelayed(this, 2000)
         }
@@ -318,13 +318,14 @@ class DropActivity : AppCompatActivity(), PopupMenu.OnMenuItemClickListener {
                         }
                     }
                 }
-                val dataIds = data.map { it.id }
+                // TODO need to be tested
+                /* val dataIds = data.map { it.id }
                 drops.filter { it.id !in dataIds }.forEach {
                     runOnUiThread {
                         it.detach()
                     }
                 }
-                drops.removeAll { it.id !in dataIds }
+                drops.removeAll { it.id !in dataIds } */
             }
 
             override fun onFailure(e: ApolloException) {
